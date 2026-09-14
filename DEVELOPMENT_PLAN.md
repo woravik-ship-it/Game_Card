@@ -65,7 +65,7 @@
 - [ ] Service: `hashSeed(canonicalString + SERVER_PEPPER)`
 - [ ] Service: `createCardFromSeed(hash)` — Deterministic PRNG
 - [ ] Service: `findCardByHash(hash)` — ค้นหาการ์ดเดิม
-- [ ] Service: Discovery Energy System (เติมวันละ 5)
+- [x] Service: Discovery Energy System (เติมวันละ 5 — ✅ lazy daily refill ผ่าน lastEnergyResetAt, ไม่ต้องพึ่ง cron)
 - [ ] Transaction: ป้องกัน Race Condition ด้วย Unique Constraint
 - [ ] Idempotency Key ต่อ Discovery Request
 - [ ] Unit Test: Canonical String, Hash, Deterministic Card
@@ -81,7 +81,7 @@
 - [ ] Badge: "ผู้ค้นพบคนแรก" vs "การ์ดที่ถูกค้นพบแล้ว"
 
 ### งานอื่น
-- [ ] Placeholder Art: Elemental Gradient ตามธาตุ+ความหายาก
+- [x] Placeholder Art: Elemental Gradient ตามธาตุ+ความหายาก (✅ deterministic SVG ที่ /api/cards/[id]/image + backfill ครบทุกการ์ดแล้ว)
 - [ ] Animation: เปิดการ์ด (รองรับ Reduced Motion)
 
 ### Definition of Done
