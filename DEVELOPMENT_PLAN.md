@@ -325,25 +325,25 @@
 **เป้าหมาย:** Admin จัดการระบบได้
 
 ### งาน Backend
-- [ ] Prisma Schema: AdminUser, AdminActionLog
-- [ ] Role-based Access: Admin แยกจาก User ทั่วไป
-- [ ] API: Admin CRUD สำหรับ Cards, Quests, Events
-- [ ] API: `GET /api/admin/users` (ดูผู้เล่น)
-- [ ] API: `GET /api/admin/analytics` (สถิติ)
-- [ ] API: `POST /api/admin/images/requeue` (สร้างภาพใหม่)
-- [ ] Audit Log: บันทึกทุก Action ของ Admin
+- [x] Prisma Schema: AdminUser, AdminActionLog (✅ ใช้ User.role (ADMIN/MODERATOR) แทน AdminUser แยก + ตาราง admin_action_logs)
+- [x] Role-based Access: Admin แยกจาก User ทั่วไป (getAdminSession + /admin layout guard)
+- [x] API: Admin CRUD สำหรับ Cards, Quests, Events (✅ Cards + Quests — Events รอทำพร้อม Phase 11)
+- [x] API: `GET /api/admin/users` (ดูผู้เล่น — search + pagination + สถิติรายคน)
+- [x] API: `GET /api/admin/analytics` (สถิติภาพรวม)
+- [x] API: `POST /api/admin/images/requeue` (สร้างภาพใหม่ — มีตั้งแต่ Phase 8 + GET /api/admin/images)
+- [x] Audit Log: บันทึกทุก Action ของ Admin (PATCH card/quest บันทึก before/after)
 
 ### งาน Frontend
-- [ ] หน้า `/admin` — Admin Dashboard
-- [ ] หน้า `/admin/cards` — จัดการการ์ด
-- [ ] หน้า `/admin/quests` — จัดการเควส
-- [ ] หน้า `/admin/users` — ดูผู้เล่น
-- [ ] หน้า `/admin/images` — ดูสถานะภาพ + Requeue
+- [x] หน้า `/admin` — Admin Dashboard (สถิติ 8 การ์ด + สถานะคิวภาพ)
+- [x] หน้า `/admin/cards` — จัดการการ์ด (ค้นหา + แก้ชื่อไทย/lore)
+- [x] หน้า `/admin/quests` — จัดการเควส (เปิด/ปิด + แก้เป้าหมาย/รางวัล)
+- [x] หน้า `/admin/users` — ดูผู้เล่น
+- [x] หน้า `/admin/images` — ดูสถานะภาพ + Requeue/Process
 
 ### Definition of Done
-- Admin จัดการทุก Entity ได้
-- Audit Log บันทึกครบ
-- ป้องกัน User ทั่วไปเข้า Admin
+- ✅ Admin จัดการทุก Entity ได้ (Cards, Quests, Images — Events รอ Phase 11)
+- ✅ Audit Log บันทึกครบ (ทดสอบ UPDATE_QUEST ผ่าน)
+- ✅ ป้องกัน User ทั่วไปเข้า Admin (API 403 + layout redirect)
 
 ---
 
