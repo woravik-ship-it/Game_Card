@@ -369,7 +369,16 @@
 
 ### Definition of Done
 - ✅ ทุก Checklist ใน GDD ผ่าน (เหลือ Image Moderation เป็น N/A — ยังไม่มี user upload)
-- ✅ ไม่มีช่องโหว่ที่ร้ายแรง (jest 164 ผ่าน, tsc ผ่าน — ⚠️ ต้องรัน `prisma db push` เมื่อ Postgres พร้อม: เพิ่มตาราง security_events + คอลัมน์ fingerprint ใน users)
+- ✅ ไม่มีช่องโหว่ที่ร้ายแรง (jest 168 ผ่าน, tsc ผ่าน)
+- ✅ **ตาราง security_events + คอลัมน์ fingerprint push ลง DB แล้ว** (`prisma db push` สำเร็จ — 20 ตาราง)
+- ✅ **ทดสอบ E2E ผ่านจริง:** ล็อกอินผิด 10 ครั้ง → 429 + AUTH_FAILURE_SPIKE ลง DB, ยิง discover รัวๆ → 429 + BOT_PATTERN (FAST_ACTIONS), CORS origin แปลกปลอม → 403, CSP/security headers ครบ, fingerprint (signup/last device_id) บันทึกถูกต้อง
+
+### หมายเหตุสภาพแวดล้อม (Postgres)
+- Docker daemon ต้องใช้สิทธิ์ root ที่เครื่องนี้ (user ไม่ได้อยู่กลุ่ม docker) — ใช้ **PostgreSQL 18.6 portable** แทน:
+  - ติดตั้งอยู่ที่ `~/pg-portable/postgresql-18.6.0-x86_64-unknown-linux-gnu/`, data dir `~/pg-portable/data`
+  - สตาร์ท: `export LD_LIBRARY_PATH=~/pg-portable/lib && ~/pg-portable/postgresql-18.6.0-x86_64-unknown-linux-gnu/bin/pg_ctl -D ~/pg-portable/data -l ~/pg-portable/pg.log -o "-p 5432" start`
+  - ฐานข้อมูล `rune_dominion` / user `postgres` / password `postgres` — ตรงกับ `.env` เดิม (port 5432 เหมือน docker-compose)
+  - หมายเหตุ: ใช้ auth=trust ตอน initdb (แต่ตั้งรหัสผ่านให้ postgres แล้ว) — เหมาะกับ dev เครื่องตัวเองเท่านั้น
 
 ---
 
