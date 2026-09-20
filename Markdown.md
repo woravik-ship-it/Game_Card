@@ -925,20 +925,20 @@ Deliverables:
 
 # 20. Security และ Anti-Cheat Checklist
 
-- [ ] Server-side validation ทุก Currency Action
-- [ ] Server-side Battle Calculation
-- [ ] Idempotency Key สำหรับ Discovery, Payment, Claim, Purchase และ Challenge
-- [ ] Database Transaction สำหรับ Currency
-- [ ] Unique Constraint สำหรับ Seed และ Ownership
-- [ ] Rate Limit ต่อ User/IP/Device
-- [ ] ตรวจ Bot Pattern เช่น Action เร็วผิดปกติ
-- [ ] Daily Cap สำหรับ Discovery, Arena Entry และ Raid
-- [ ] Audit Log สำหรับ Admin Action
-- [ ] Battle Replay Verification
-- [ ] ห้ามเชื่อข้อมูล Stat, Damage หรือ Reward จาก Client
-- [ ] Image Moderation และ File Validation
-- [ ] จำกัดความยาวชื่อห้องและกรองคำไม่เหมาะสม
-- [ ] รองรับ Retry โดยไม่หัก Currency ซ้ำ
+- [x] Server-side validation ทุก Currency Action (✅ Phase 10 — Zod schema + ตรวจสิทธิ์/เงื่อนไขฝั่ง server ทุก endpoint)
+- [x] Server-side Battle Calculation (✅ Phase 4 — deterministic simulateBattle + seed จาก SERVER_PEPPER)
+- [x] Idempotency Key สำหรับ Discovery, Payment, Claim, Purchase และ Challenge (✅ discovery/wallet/arenaChallenge มี unique idempotencyKey, quest claim ตรวจ claimed ซ้ำ — Purchase ยังไม่มีระบบร้านค้า)
+- [x] Database Transaction สำหรับ Currency (✅ wallet debit/credit ใช้ prisma.$transaction)
+- [x] Unique Constraint สำหรับ Seed และ Ownership (✅ canonicalSeedHash @unique + @@unique([userId, cardId]))
+- [x] Rate Limit ต่อ User/IP/Device (✅ Phase 10 — sliding-window + middleware burst; ปรับผ่าน RATE_LIMIT_<SCOPE>_LIMIT)
+- [x] ตรวจ Bot Pattern เช่น Action เร็วผิดปกติ (✅ Phase 10 — FAST_ACTIONS + UNIFORM_CADENCE → 429 + SecurityEvent)
+- [x] Daily Cap สำหรับ Discovery, Arena Entry และ Raid (✅ Discovery = energy 5/วัน (lazy refill), Arena Entry = 20 ครั้ง/วัน — Raid ยังไม่มีระบบ)
+- [x] Audit Log สำหรับ Admin Action (✅ Phase 9 admin_action_logs + Phase 10 security_events)
+- [x] Battle Replay Verification (✅ Phase 10 — เก็บ teams snapshot + seed → re-simulate เทียบผล; TAMPERED → SecurityEvent)
+- [x] ห้ามเชื่อข้อมูล Stat, Damage หรือ Reward จาก Client (✅ server คำนวณทั้งหมด — client ส่งได้แค่ตัวตน/ID)
+- [ ] Image Moderation และ File Validation (⏳ N/A ตอนนี้ — ไม่มี file upload จากผู้เล่น ภาพมาจาก AI API ฝั่ง server; ทำตอนเปิดให้อัปโหลด)
+- [x] จำกัดความยาวชื่อห้องและกรองคำไม่เหมาะสม (✅ Phase 10 — Zod max 60 ตัวอักษร + profanity filter ไทย/อังกฤษ)
+- [x] รองรับ Retry โดยไม่หัก Currency ซ้ำ (✅ idempotencyKey ใน WalletService.debit/credit + idempotent claim/join/challenge)
 
 ---
 

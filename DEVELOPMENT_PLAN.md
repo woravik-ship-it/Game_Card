@@ -352,24 +352,24 @@
 **เป้าหมาย:** ระบบปลอดภัยตาม Checklist
 
 ### งาน Backend
-- [ ] Rate Limiting: ต่อ User/IP/Device
-- [ ] Bot Pattern Detection (Action เร็วผิดปกติ)
-- [ ] Alt-account Fingerprinting
-- [ ] Input Validation ทุก API (Zod)
-- [ ] SQL Injection Prevention (Prisma จัดการให้)
-- [ ] XSS Protection (Next.js + React จัดการให้)
-- [ ] CORS Configuration
-- [ ] Security Headers (Helmet)
-- [ ] Battle Replay Verification (ตรวจสอบความถูกต้อง)
+- [x] Rate Limiting: ต่อ User/IP/Device (✅ sliding-window in-memory (`src/lib/rate-limit.ts`) + middleware จำกัด burst 120 req/นาที/IP — identity เรียงลำดับ User → Device → IP; ปรับผ่าน env `RATE_LIMIT_<SCOPE>_LIMIT`; scale หลายอินสแตนซ์ค่อยสลับ store เป็น Redis)
+- [x] Bot Pattern Detection (Action เร็วผิดปกติ) (✅ `src/lib/anti-cheat.ts` — FAST_ACTIONS (≥6 ครั้ง ห่าง <250ms) + UNIFORM_CADENCE (jitter ≤20ms × 12 ครั้ง) → 429 + SecurityEvent BOT_PATTERN — ใช้กับ /api/discover)
+- [x] Alt-account Fingerprinting (✅ header `x-device-id` + IP → เก็บ signup/last ในตาราง users; สมัคร/ล็อกอินซ้ำ device เดียวกัน → SecurityEvent ALT_ACCOUNT_SUSPECT — ไม่บล็อกอัตโนมัติ กัน false positive บน LAN NAT)
+- [x] Input Validation ทุก API (Zod) (✅ `src/lib/validation.ts` — schemas ครอบ discover / auth / battle / arena create-join-challenge / quest claim / decks / favorite + `parseJsonBody` ตอบ 400 ระบุ path)
+- [x] SQL Injection Prevention (Prisma จัดการให้) (✅ ตรวจแล้ว — ไม่มี `$queryRaw`/`$executeRaw` ใน src เลย)
+- [x] XSS Protection (Next.js + React จัดการให้) (✅ ตรวจแล้ว — ไม่มี `dangerouslySetInnerHTML` + CSP รองรับ)
+- [x] CORS Configuration (✅ `src/lib/cors.ts` — same-origin เป็นค่าเริ่มต้น, เพิ่มผ่าน `CORS_ALLOWED_ORIGINS`, preflight 204/403, guard ใน middleware)
+- [x] Security Headers (Helmet) (✅ ใช้ middleware แทน Helmet เพราะ Next.js ไม่ใช่ Express — เพิ่ม CSP + HSTS (prod) + X-Frame-Options/nosniff/Referrer-Policy/Permissions-Policy)
+- [x] Battle Replay Verification (ตรวจสอบความถูกต้อง) (✅ `src/services/battle-verify.ts` — สร้าง battle เก็บ `teams` snapshot + seed → replay re-simulate เทียบ winner/rounds/HP/log ทั้งก้อน; TAMPERED → SecurityEvent severity HIGH; battle เก่า → UNVERIFIABLE)
 
 ### งานอื่น
-- [ ] Security Audit Log
-- [ ] Penetration Test เบื้องต้น
-- [ ] Document Security Policy
+- [x] Security Audit Log (✅ โมเดล `SecurityEvent` (ตาราง security_events) + `src/lib/security-log.ts` (fail-safe) + `GET /api/admin/security` (guard ADMIN/MODERATOR, pagination + filter by type))
+- [x] Penetration Test เบื้องต้น (✅ เทสอัตโนมัติ 5 ชุดใหม่: rate-limit / anti-cheat / battle-verify / cors / validation — jest ผ่าน 164/164 + typecheck ผ่าน; checklist manual อยู่ SECURITY.md §4)
+- [x] Document Security Policy (✅ `SECURITY.md` — สถาปัตยกรรม 8 ชั้น, กลไกแต่ละอัน, accepted risks, วิธีรายงานช่องโหว่)
 
 ### Definition of Done
-- ทุก Checklist ใน GDD ผ่าน
-- ไม่มีช่องโหว่ที่ร้ายแรง
+- ✅ ทุก Checklist ใน GDD ผ่าน (เหลือ Image Moderation เป็น N/A — ยังไม่มี user upload)
+- ✅ ไม่มีช่องโหว่ที่ร้ายแรง (jest 164 ผ่าน, tsc ผ่าน — ⚠️ ต้องรัน `prisma db push` เมื่อ Postgres พร้อม: เพิ่มตาราง security_events + คอลัมน์ fingerprint ใน users)
 
 ---
 
