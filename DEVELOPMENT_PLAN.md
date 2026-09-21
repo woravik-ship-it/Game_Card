@@ -598,6 +598,7 @@ Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ 
 | E2E critical flow (localhost) | `npm run e2e:flow` | **25/25 ผ่าน** |
 | E2E critical flow (public tunnel) | `npm run e2e:flow -- --base <trycloudflare URL>` | **25/25 ผ่าน** |
 | Backup + verify | `npm run backup` / `npm run backup:verify` | 30 ตาราง · checksum ตรง · restore ได้ |
+| Load test 120 ผู้ใช้ | `npm run load-test -- --users 120 --duration 10` | 197.9 req/s · success 100% · p95 795ms |
 | Audit แผนเทียบโค้ด | `npm run audit` | ทุกข้อมีหลักฐานจริงหรือมีเหตุผลที่ระบุไว้ |
 
 **บริการที่รันอยู่:** `systemd --user` 3 unit — `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-tunnel`
