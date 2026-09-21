@@ -1,0 +1,3 @@
+[submodule "rune-dominion-arena"]
+	path = rune-dominion-arena
+	url = https://github.com/woravik-ship-it/rune-dominion-arena.git

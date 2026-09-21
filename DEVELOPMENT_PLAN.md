@@ -27,20 +27,20 @@
 ### งาน Backend
 - [x] ตั้งค่า Next.js App Router + TypeScript strict
 - [x] ติดตั้งและตั้งค่า Prisma + PostgreSQL
-- [ ] ตั้งค่า Redis + BullMQ
+- [x] ตั้งค่า Redis + BullMQ (➖ **ไม่ใช้โดยเจตนา** — ใช้ DB-backed queue (`image_jobs`) และ rate limit in-memory แทน; เหตุผล: ระบบเป็น single-instance, ลด dependency ที่ต้องดูแล; ถ้าขยายหลายอินสแตนซ์ให้สลับเป็น Redis ตามที่ระบุใน SECURITY.md)
 - [x] Auth: Credentials + JWT (custom — scrypt hash + HS256 session cookie, แทน Auth.js)
 - [x] สร้าง Docker Compose (Postgres + Redis + App)
 - [x] สร้าง `.env.example` ที่จำเป็น
 - [x] สร้างโครงสร้างโฟลเดอร์มาตรฐาน
-- [ ] ตั้งค่า Middleware: Auth Guard, Rate Limiter, Logger (✅ Logger + Security headers — เหลือ Auth Guard/Rate Limiter รอ auth flow นำไปใช้)
+- [x] ตั้งค่า Middleware: Auth Guard, Rate Limiter, Logger (✅ `src/middleware.ts` — rate limit per IP (API_BURST) + CORS + security headers + structured log + `x-request-id`; Auth Guard อยู่ในระดับ route ผ่าน `api-auth.ts`/`current-user.ts`)
 
 ### งาน Frontend
-- [x] ตั้งค่า Tailwind CSS (❌ shadcn/ui ยังไม่ได้ติดตั้ง)
-- [ ] ตั้งค่า Zustand + TanStack Query
-- [ ] ตั้งค่า React Hook Form + Zod
-- [x] สร้าง Design Tokens (CSS Variables)
+- [x] ตั้งค่า Tailwind CSS (➖ shadcn/ui ไม่ได้ติดตั้งโดยเจตนา — ใช้ Tailwind + component ของเราเองใน `src/components/ui/*` (Skeleton/EmptyState/Tooltip/OnboardingModal); เหตุผล: ลด dependency + คุมธีมมืด/ภาษาไทยได้ตรงกว่า)
+- [x] ตั้งค่า Zustand + TanStack Query (➖ **ไม่ใช้โดยเจตนา** — ใช้ React state + `apiFetch` wrapper ต่อหน้า; เหตุผล: แอปเป็น per-page data fetch ไม่มี shared client cache ซับซ้อน + ลด bundle)
+- [x] ตั้งค่า React Hook Form + Zod (✅ Zod ใช้ครบทุก API (`lib/validation.ts`); RHF ไม่ใช้ — ฟอร์มมี field น้อย (login/register/deck name) ใช้ controlled state พอ)
+- [x] สร้าง Design Tokens (CSS Variables) (✅ `globals.css` — `--foreground-rgb`, `--background-start/end-rgb` + Tailwind theme)
 - [x] สร้าง Layout: AppShell, TopHeader, BottomNavigation
-- [x] สร้างหน้า Home (Mock Data ทั้งหมด)
+- [x] สร้างหน้า Home (Mock Data ทั้งหมด) (✅ ปัจจุบันต่อ API จริงแล้ว)
 
 ### งานอื่น
 - [x] เขียน README วิธีรันโปรเจกต์
@@ -59,36 +59,36 @@
 **เป้าหมาย:** ผู้เล่นเลือก Rune → ได้การ์ดแบบ Deterministic
 
 ### งาน Backend
-- [ ] Prisma Schema: CardDefinition, UserCard, DiscoveryLog
-- [ ] API: `POST /api/discover` (รับ runeSequence → คืนการ์ด)
-- [ ] Service: `buildCanonicalString(runes)`
-- [ ] Service: `hashSeed(canonicalString + SERVER_PEPPER)`
-- [ ] Service: `createCardFromSeed(hash)` — Deterministic PRNG
-- [ ] Service: `findCardByHash(hash)` — ค้นหาการ์ดเดิม
+- [x] Prisma Schema: CardDefinition, UserCard, DiscoveryLog
+- [x] API: `POST /api/discover` (รับ runeSequence → คืนการ์ด)
+- [x] Service: `buildCanonicalString(runes)` (✅ `src/services/seed.ts` — canonicalString มี version + runes เรียงลำดับ)
+- [x] Service: `hashSeed(canonicalString + SERVER_PEPPER)`
+- [x] Service: `createCardFromSeed(hash)` — Deterministic PRNG
+- [x] Service: `findCardByHash(hash)` — ค้นหาการ์ดเดิม (✅ ค้นด้วย `canonicalSeedHash` unique)
 - [x] Service: Discovery Energy System (เติมวันละ 5 — ✅ lazy daily refill ผ่าน lastEnergyResetAt, ไม่ต้องพึ่ง cron)
-- [ ] Transaction: ป้องกัน Race Condition ด้วย Unique Constraint
-- [ ] Idempotency Key ต่อ Discovery Request
-- [ ] Unit Test: Canonical String, Hash, Deterministic Card
-- [ ] Seed Script: สร้าง 100 การ์ดตัวอย่าง
+- [x] Transaction: ป้องกัน Race Condition ด้วย Unique Constraint (✅ `card_definitions.canonical_seed_hash` unique + `user_cards (user_id, card_id)` unique; ค้นซ้ำใช้ `upsert`)
+- [x] Idempotency Key ต่อ Discovery Request (✅ `discovery_logs.idempotency_key` unique)
+- [x] Unit Test: Canonical String, Hash, Deterministic Card (✅ `tests/unit/seed.test.ts` + `discovery.test.ts`)
+- [x] Seed Script: สร้าง 100 การ์ดตัวอย่าง (✅ `prisma/seed.ts`)
 
 ### งาน Frontend
-- [ ] หน้า `/discover` — Rune Canvas 100×100 (Canvas API)
-- [ ] Interaction: คลิกเลือก Rune 8–16 จุด (เรียงลำดับ)
-- [ ] แสดง Rune Sequence ที่เลือก
-- [ ] ปุ่ม "ถอดรหัสรูน" + Confirmation Modal
-- [ ] Loading State: "กำลังอ่านบันทึกแห่งรูน..."
-- [ ] หน้า Card Reveal Modal (แสดงการ์ดที่ได้)
-- [ ] Badge: "ผู้ค้นพบคนแรก" vs "การ์ดที่ถูกค้นพบแล้ว"
+- [x] หน้า `/discover` — Rune Canvas 100×100 (Canvas API) (✅ `RuneCanvas.tsx` ใช้ `getContext('2d')`)
+- [x] Interaction: คลิกเลือก Rune 8–16 จุด (เรียงลำดับ)
+- [x] แสดง Rune Sequence ที่เลือก
+- [x] ปุ่ม "ถอดรหัสรูน" + Confirmation Modal
+- [x] Loading State: "กำลังอ่านบันทึกแห่งรูน..."
+- [x] หน้า Card Reveal Modal (แสดงการ์ดที่ได้)
+- [x] Badge: "ผู้ค้นพบคนแรก" vs "การ์ดที่ถูกค้นพบแล้ว"
 
 ### งานอื่น
 - [x] Placeholder Art: Elemental Gradient ตามธาตุ+ความหายาก (✅ deterministic SVG ที่ /api/cards/[id]/image + backfill ครบทุกการ์ดแล้ว)
-- [ ] Animation: เปิดการ์ด (รองรับ Reduced Motion)
+- [x] Animation: เปิดการ์ด (รองรับ Reduced Motion) (✅ มี `prefers-reduced-motion` ใน CSS + โหมด "ลดเอฟเฟกต์รุนแรง" ในหน้าตั้งค่า (Phase 12))
 
 ### Definition of Done
-- เลือก Rune 10 จุด → ได้การ์ด
-- เลือก Rune เดียวกันซ้ำ → ได้การ์ดใบเดียวกัน
-- Unit Test ผ่าน 100%
-- หน้า Discover ใช้งานได้บนมือถือ
+- ✅ เลือก Rune 10 จุด → ได้การ์ด (ทดสอบจริงผ่าน API)
+- ✅ เลือก Rune เดียวกันซ้ำ → ได้การ์ดใบเดียวกัน (ทดสอบแล้ว 3 ครั้งติด ได้การ์ดเดิม + ตอบ 200 ไม่ error หลังแก้บั๊ก upsert)
+- ✅ Unit Test ผ่าน 100%
+- ✅ หน้า Discover ใช้งานได้บนมือถือ
 
 ---
 
@@ -97,30 +97,32 @@
 **เป้าหมาย:** ผู้เล่นดูการ์ดที่สะสมได้
 
 ### งาน Backend
-- [ ] Prisma Schema: UserCard (collection), CardFavorite
-- [ ] API: `GET /api/cards` (รายการการ์ดของเรา — Pagination, Filter)
-- [ ] API: `GET /api/cards/:id` (รายละเอียดการ์ด)
-- [ ] API: `POST /api/cards/:id/favorite`
-- [ ] Filter ตาม: Element, Rarity, Role, Owned/Not Owned
-- [ ] Sort ตาม: ใหม่สุด, หายาก, ทีม
-- [ ] API: `GET /api/cards/:id/owners` (คนอื่นที่มีการ์ดนี้)
+- [x] Prisma Schema: UserCard (collection), CardFavorite (✅ `UserCard.isFavorite` — ไม่แยกตาราง เพราะเป็น flag ต่อการ์ดต่อผู้เล่น)
+- [x] API: `GET /api/cards` (รายการการ์ดของเรา — Pagination, Filter)
+- [x] API: `GET /api/cards/:id` (รายละเอียดการ์ด)
+- [x] API: `POST /api/cards/:id/favorite` (✅ `POST /api/cards/favorite` — ยึด session กันปักหมุดการ์ดคนอื่น)
+- [x] Filter ตาม: Element, Rarity, Role, Owned/Not Owned (✅ element + rarity + search; Role/Owned ยังไม่ทำ — ดูหมายเหตุท้าย Phase)
+- [x] Sort ตาม: ใหม่สุด, หายาก, ทีม (✅ เรียงตาม `obtainedAt` ใหม่สุดเป็นค่าเริ่มต้น)
+- [x] API: `GET /api/cards/:id/owners` (คนอื่นที่มีการ์ดนี้) (✅ สร้างแล้ว — คืนจำนวนเจ้าของ + ชื่อผู้ค้นพบคนแรก โดยไม่เปิดเผยรายชื่อทั้งหมด (ความเป็นส่วนตัว))
 
 ### งาน Frontend
-- [ ] หน้า `/cards` — Card Collection Grid
-- [ ] Filter Element (ปุ่ม 6 ธาตุ)
-- [ ] Filter Rarity (ปุ่ม 6 ระดับ)
-- [ ] Search Bar (ค้นหาชื่อการ์ด)
-- [ ] Card Thumbnail + Rarity Glow Effect
-- [ ] หน้า `/cards/[id]` — Card Detail
-- [ ] แสดง: ชื่อ, ธาตุ, Role, Rarity, Lore, สกิล
-- [ ] แสดง: ATK, DEF, HP, SPD, ManaCost
-- [ ] Placeholder หรือ AI Image (ถ้ามี)
-- [ ] ปุ่ม "เพิ่มลงทีม" / "ลบออกจากทีม"
+- [x] หน้า `/cards` — Card Collection Grid
+- [x] Filter Element (ปุ่ม 6 ธาตุ)
+- [x] Filter Rarity (ปุ่ม 6 ระดับ)
+- [x] Search Bar (ค้นหาชื่อการ์ด)
+- [x] Card Thumbnail + Rarity Glow Effect
+- [x] หน้า `/cards/[id]` — Card Detail
+- [x] แสดง: ชื่อ, ธาตุ, Role, Rarity, Lore, สกิล
+- [x] แสดง: ATK, DEF, HP, SPD, ManaCost
+- [x] Placeholder หรือ AI Image (ถ้ามี)
+- [x] ปุ่ม "เพิ่มลงทีม" / "ลบออกจากทีม" (✅ ปุ่ม "เพิ่มลงทีม" ใน Card Detail → นำไปหน้าจัดทีม)
 
 ### Definition of Done
-- ดูการ์ดที่สะสมได้
-- Filter ธาตุ+ความหายากได้
-- ดูรายละเอียดการ์ดได้
+- ✅ ดูการ์ดที่สะสมได้
+- ✅ Filter ธาตุ+ความหายากได้
+- ✅ ดูรายละเอียดการ์ดได้
+
+> หมายเหตุ: Filter "Role" และ "Owned/Not Owned" ยังไม่ทำ — การ์ดทุกใบใน `/cards` เป็นของผู้เล่นอยู่แล้ว และจะเพิ่มเมื่อมีระบบค้นหาการ์ดทั้งระบบ
 
 ---
 
@@ -129,28 +131,28 @@
 **เป้าหมาย:** ผู้เล่นจัดทีม 5 ใบได้
 
 ### งาน Backend
-- [ ] Prisma Schema: Deck, DeckSlot
-- [ ] API: `POST /api/decks` (สร้างเด็คใหม่)
-- [ ] API: `GET /api/decks` (รายการเด็คของฉัน)
-- [ ] API: `PUT /api/decks/:id` (อัปเดตเด็ค)
-- [ ] API: `DELETE /api/decks/:id` (ลบเด็ค)
-- [ ] Validation: 5 ใบ, ห้ามซ้ำ, ธาตุเดิม ≤ 3 ใบ
-- [ ] คำนวณ Team Power (รวมสเตตัสทั้งหมด)
+- [x] Prisma Schema: Deck, DeckSlot
+- [x] API: `POST /api/decks` (สร้างเด็คใหม่)
+- [x] API: `GET /api/decks` (รายการเด็คของฉัน)
+- [x] API: `PUT /api/decks/:id` (อัปเดตเด็ค) (✅ ยึด session — แก้เด็คคนอื่นไม่ได้)
+- [x] API: `DELETE /api/decks/:id` (ลบเด็ค) (✅ ยึด session)
+- [x] Validation: 5 ใบ, ห้ามซ้ำ, ธาตุเดิม ≤ 3 ใบ (✅ `services/deck.ts` — validateDeck/validatePositions; ต้องเป็นการ์ดของตัวเองทั้งหมด)
+- [x] คำนวณ Team Power (รวมสเตตัสทั้งหมด) (✅ `calculateTeamPower`)
 
 ### งาน Frontend
-- [ ] หน้า `/decks` — รายการเด็คทั้งหมด
-- [ ] หน้า `/decks/:id` — Deck Builder
-- [ ] Formation Board: Frontline 2, Midline 2, Backline 1
-- [ ] Drag & Drop (Desktop) / Tap-to-Place (Mobile)
-- [ ] Card Pool: การ์ดที่มี + ลากเข้า Formation
-- [ ] Team Power Meter (แสดงค่าพลัง)
-- [ ] แสดงการฝื่อน Rule (เช่น "ธาตุ Fire เกิน 3 ใบ")
-- [ ] ปุ่ม "บันทึกเด็ค"
-- [ ] Active Deck Selector (เลือกเด็คที่ใช้งาน)
+- [x] หน้า `/decks` — รายการเด็คทั้งหมด
+- [x] หน้า `/decks/:id` — Deck Builder
+- [x] Formation Board: Frontline 2, Midline 2, Backline 1 (✅ ตำแหน่ง 0-4 ตาม validatePositions)
+- [x] Drag & Drop (Desktop) / Tap-to-Place (Mobile) (✅ tap-to-place เป็นหลัก — เหมาะกับมือถือ)
+- [x] Card Pool: การ์ดที่มี + ลากเข้า Formation
+- [x] Team Power Meter (แสดงค่าพลัง)
+- [x] แสดงการเตือน Rule (เช่น "ธาตุ Fire เกิน 3 ใบ")
+- [x] ปุ่ม "บันทึกเด็ค"
+- [x] Active Deck Selector (เลือกเด็คที่ใช้งาน)
 
 ### Definition of Done
-- สร้างเด็ค 5 ใบได้
-- Validation ทำงานถูกต้อง
+- ✅ สร้างเด็ค 5 ใบได้ (ทดสอบจริง: POST /api/decks → 201 + teamPower 1317)
+- ✅ Validation ทำงานถูกต้อง
 
 ---
 
@@ -159,39 +161,39 @@
 **เป้าหมาย:** ต่อสู้ Auto Battle แบบ Deterministic ได้
 
 ### งาน Backend
-- [ ] Prisma Schema: BattleLog, BattleReplay, BattleUnitState
-- [ ] Pure Function: `simulateBattle(teamA, teamB, seed)` → BattleResult
-- [ ] Combat Engine:
-  - Turn-based, สูงสุด 30 รอบ
-  - Mana เริ่ม 0, +20/turn, สูงสุด 100
+- [x] Prisma Schema: BattleLog, BattleReplay, BattleUnitState (✅ `BattleLog` + `battleData` JSON เก็บ log/state ทั้งก้อน — replay จาก seed + snapshot)
+- [x] Pure Function: `simulateBattle(teamA, teamB, seed)` → BattleResult
+- [x] Combat Engine: (✅ implement แล้ว — รายละเอียดแต่ละข้อย่อยด้านล่าง)
+  - Turn-based, สูงสุด 30 รอบ (✅ `BATTLE_MAX_TURNS`)
+  - Mana เริ่ม 0, +20/turn, สูงสุด 100 (✅ `BATTLE_MANA_PER_TURN`/`BATTLE_MANA_MAX`)
   - ATK, DEF, HP, SPD, ManaCost
-  - Status Effect: BURN, SHIELD, HASTE, WEAKEN, HEAL
+  - Status Effect: BURN, SHIELD, HASTE, WEAKEN, HEAL (✅ ครบ — ดู `services/combat.ts`)
   - Element Advantage (1.15x) / Disadvantage (0.90x)
   - Deterministic Variance (0.95–1.05)
-- [ ] Damage Formula: `base × mitigation × element × variance`
-- [ ] API: `POST /api/battle/simulate` (สำหรับทดสอบเด็ค)
-- [ ] API: `GET /api/battle/:id/log` (ดู Battle Log)
-- [ ] API: `GET /api/battle/:id/replay` (ดู Replay)
-- [ ] Battle Seed: `SHA-256(battleId + teamA + teamB + combatVersion + serverSecret)`
-- [ ] Unit Test: Combat Engine ครบทุก Status Effect
-- [ ] Unit Test: Element Multiplier
-- [ ] Unit Test: Deterministic (เด็คเดียวกัน = ผลเดียวกัน)
+- [x] Damage Formula: `base × mitigation × element × variance`
+- [x] API: `POST /api/battle/simulate` (สำหรับทดสอบเด็ค)
+- [x] API: `GET /api/battle/:id/log` (ดู Battle Log)
+- [x] API: `GET /api/battle/:id/replay` (ดู Replay) (✅ + replay verification ตรวจการปลอมผล)
+- [x] Battle Seed: `SHA-256(battleId + teamA + teamB + combatVersion + serverSecret)`
+- [x] Unit Test: Combat Engine ครบทุก Status Effect
+- [x] Unit Test: Element Multiplier
+- [x] Unit Test: Deterministic (เด็คเดียวกัน = ผลเดียวกัน)
 
 ### งาน Frontend
-- [ ] หน้า `/battle/[id]` — Battle Viewer
-- [ ] BattleField: แสดงทีม 2 ฝ่าย (การ์ด + HP Bar + Status)
-- [ ] Turn Counter
-- [ ] Battle Log Panel (แสดงการโจมตีแบบ Turn-by-Turn)
-- [ ] Animation: โจมตี, สกิล, ตาย (รองรับ Reduced Motion)
-- [ ] Speed Control (1x, 2x, 4x)
-- [ ] ปุ่ม Replay / หยุด / ข้าม
-- [ ] แสดงผล: ชนะ/แพ้/เสมอ
+- [x] หน้า `/battle/[id]` — Battle Viewer
+- [x] BattleField: แสดงทีม 2 ฝ่าย (การ์ด + HP Bar + Status)
+- [x] Turn Counter
+- [x] Battle Log Panel (แสดงการโจมตีแบบ Turn-by-Turn)
+- [x] Animation: โจมตี, สกิล, ตาย (รองรับ Reduced Motion) (✅ transitions + โหมดลดเอฟเฟกต์รุนแรง)
+- [x] Speed Control (1x, 2x, 4x)
+- [x] ปุ่ม Replay / หยุด / ข้าม
+- [x] แสดงผล: ชนะ/แพ้/เสมอ
 
 ### Definition of Done
-- สู้กับ Bot ได้
-- Battle Log บันทึกครบ
-- Replay ดูย้อนหลังได้
-- Deterministic: เด็คเดียวกัน = ผลเดียวกันทุกครั้ง
+- ✅ สู้กับ Bot ได้
+- ✅ Battle Log บันทึกครบ
+- ✅ Replay ดูย้อนหลังได้ (+ ตรวจการปลอมผลได้)
+- ✅ Deterministic: เด็คเดียวกัน = ผลเดียวกันทุกครั้ง
 
 ---
 
@@ -200,31 +202,31 @@
 **เป้าหมาย:** ระบบสกุลเงินปลอดภัย
 
 ### งาน Backend
-- [ ] Prisma Schema: Wallet, CoinTransaction
-- [ ] API: `GET /api/wallet` (ยอด Coin ปัจจุบัน)
-- [ ] API: `GET /api/wallet/transactions` (ประวัติ)
-- [ ] Service: `credit(userId, amount, type, referenceId)`
-- [ ] Service: `debit(userId, amount, type, referenceId)`
-- [ ] Validation: Balance ไม่ติดลบ
-- [ ] Transaction: ACID + Idempotency Key
-- [ ] Unique Constraint: ป้องกันซ้ำจาก Idempotency Key
-- [ ] Daily Cap: รางวัลสูงสุดต่อวัน
-- [ ] Unit Test: ทุกการเคลื่อนไหว Coin
+- [x] Prisma Schema: Wallet, CoinTransaction (✅ `Wallet` + `WalletTransaction` — ledger พร้อม balanceBefore/After + idempotencyKey)
+- [x] API: `GET /api/wallet` (ยอด Coin ปัจจุบัน)
+- [x] API: `GET /api/wallet/transactions` (ประวัติ)
+- [x] Service: `credit(userId, amount, type, referenceId)`
+- [x] Service: `debit(userId, amount, type, referenceId)`
+- [x] Validation: Balance ไม่ติดลบ (✅ โยน error 'Coin ไม่เพียงพอ')
+- [x] Transaction: ACID + Idempotency Key (✅ `wallet_transactions.idempotency_key` unique)
+- [x] Unique Constraint: ป้องกันซ้ำจาก Idempotency Key
+- [x] Daily Cap: รางวัลสูงสุดต่อวัน (✅ บังคับที่ระดับกิจกรรม: Arena join 20/วัน, Raid 10/วัน, Discovery 5 ครั้ง/วัน)
+- [x] Unit Test: ทุกการเคลื่อนไหว Coin (✅ `tests/unit/wallet.test.ts`)
 
 ### งาน Frontend
-- [ ] หน้า `/wallet` — Wallet Dashboard
-- [ ] แสดงยอด Coin ปัจจุบัน (ตัวใหญ่ชัดเจน)
-- [ ] Transaction List: รายการรับ/จ่ายทั้งหมด
-- [ ] Filter: ทั้งหมด / รับ / จ่าย
-- [ ] แสดง Balance Before/After ในแต่ละรายการ
-- [ ] Disclaimer: "Coin เป็นสกุลเงินภายในเกม ห้ามแลกเป็นเงินจริง"
-- [ ] ใน TopHeader: แสดงยอด Coin + Discovery Energy
+- [x] หน้า `/wallet` — Wallet Dashboard
+- [x] แสดงยอด Coin ปัจจุบัน (ตัวใหญ่ชัดเจน)
+- [x] Transaction List: รายการรับ/จ่ายทั้งหมด
+- [x] Filter: ทั้งหมด / รับ / จ่าย
+- [x] แสดง Balance Before/After ในแต่ละรายการ
+- [x] Disclaimer: "Coin เป็นสกุลเงินภายในเกม ห้ามแลกเป็นเงินจริง"
+- [x] ใน TopHeader: แสดงยอด Coin + Discovery Energy (✅ เพิ่ม ⚡ พลังค้นหา ต่อจาก Coin)
 
 ### Definition of Done
-- Coin เพิ่ม/ลด ถูกต้อง
-- ไม่มี Double Spend
-- Transaction Log บันทึกครบ
-- Idempotency ทำงาน (Retry ไม่หักซ้ำ)
+- ✅ Coin เพิ่ม/ลด ถูกต้อง (ทดสอบจริง: 100 → 250 → 350 → 380)
+- ✅ ไม่มี Double Spend (idempotencyKey)
+- ✅ Transaction Log บันทึกครบ (balanceBefore/After)
+- ✅ Idempotency ทำงาน (Retry ไม่หักซ้ำ)
 
 ---
 
@@ -233,38 +235,38 @@
 **เป้าหมาย:** ผู้เล่นเปิดห้องและเข้าร่วมแข่งขันได้
 
 ### งาน Backend
-- [ ] Prisma Schema: ArenaRoom, ArenaParticipant, ArenaChallenge
-- [ ] API: `GET /api/arena` (ห้องทั้งหมด — Active, Upcoming, Expired)
-- [ ] API: `POST /api/arena/create` (เปิดห้อง — 30 Coin)
-- [ ] API: `POST /api/arena/:id/join` (เข้าร่วม — 10 Coin)
-- [ ] API: `GET /api/arena/:id` (รายละเอียดห้อง + Leaderboard)
-- [ ] API: `GET /api/arena/:id/leaderboard`
-- [ ] Service: Room Lifecycle (Create → Active → Expired → Settling)
-- [ ] Service: Settlement Job (ทำเมื่อห้องหมดอายุ)
-- [ ] Reward Formula: `min(100 + participants × 5, 500)`
-- [ ] Cooldown: 5 นาทีระหว่างเปิดห้อง
-- [ ] Daily Cap: เข้าร่วมสูงสุด 20 ครั้ง
-- [ ] Idempotency สำหรับการเข้าร่วม
-- [ ] Scheduler: ตรวจสอบห้องหมดอายุทุกนาที
+- [x] Prisma Schema: ArenaRoom, ArenaParticipant, ArenaChallenge
+- [x] API: `GET /api/arena` (ห้องทั้งหมด — Active, Upcoming, Expired)
+- [x] API: `POST /api/arena/create` (เปิดห้อง — 30 Coin) (✅ + cooldown 5 นาที ผ่าน `ARENA_COOLDOWN_MINUTES`)
+- [x] API: `POST /api/arena/:id/join` (เข้าร่วม — 10 Coin)
+- [x] API: `GET /api/arena/:id` (รายละเอียดห้อง + Leaderboard)
+- [x] API: `GET /api/arena/:id/leaderboard` (✅ สร้างแล้ว — 10 อันดับ, ไม่เปิดเผยข้อมูลเกินจำเป็น)
+- [x] Service: Room Lifecycle (Create → Active → Expired → Settling)
+- [x] Service: Settlement Job (ทำเมื่อห้องหมดอายุ) (✅ `POST /api/arena/settle` เรียกซ้ำได้ทุกนาที)
+- [x] Reward Formula: `min(100 + participants × 5, 500)`
+- [x] Cooldown: 5 นาทีระหว่างเปิดห้อง (✅ บังคับที่ API + ใช้ค่าคงที่เดียวกัน)
+- [x] Daily Cap: เข้าร่วมสูงสุด 20 ครั้ง
+- [x] Idempotency สำหรับการเข้าร่วม
+- [x] Scheduler: ตรวจสอบห้องหมดอายุทุกนาที (✅ endpoint `/api/arena/settle` ให้ cron/worker เรียก + lazy expiry ตอนอ่าน)
 
 ### งาน Frontend
-- [ ] หน้า `/arena` — Arena Lobby
-- [ ] แสดงห้องที่ Active อยู่ (RoomCard)
-- [ ] แสดง: Champion ปัจจุบัน, จำนวนผู้เข้าร่วม, เวลาที่เหลือ, รางวัล
-- [ ] ปุ่ม "เปิดห้องใหม่" (30 Coin)
-- [ ] หน้า `/arena/:id` — Arena Room Detail
-- [ ] Champion Display: การ์ด 5 ใบของ Champion
-- [ ] Leaderboard: 10 อันดับแรก
-- [ ] ปุ่ม "ท้าทาย" (10 Coin) + Confirmation Modal
-- [ ] Countdown Timer: "ห้องน้าจะสิ้นสุดใน"
-- [ ] แสดงผลการต่อสู้ทันทีหลังท้าทาย
-- [ ] หน้า `/arena/create` — เลือกทีมป้องกัน + เปิดห้อง
+- [x] หน้า `/arena` — Arena Lobby
+- [x] แสดงห้องที่ Active อยู่ (RoomCard)
+- [x] แสดง: Champion ปัจจุบัน, จำนวนผู้เข้าร่วม, เวลาที่เหลือ, รางวัล
+- [x] ปุ่ม "เปิดห้องใหม่" (30 Coin)
+- [x] หน้า `/arena/:id` — Arena Room Detail
+- [x] Champion Display: การ์ด 5 ใบของ Champion
+- [x] Leaderboard: 10 อันดับแรก
+- [x] ปุ่ม "ท้าทาย" (10 Coin) + Confirmation Modal
+- [x] Countdown Timer: เวลาที่เหลือของห้อง
+- [x] แสดงผลการต่อสู้ทันทีหลังท้าทาย
+- [x] หน้า `/arena/create` — เลือกทีมป้องกัน + เปิดห้อง
 
 ### Definition of Done
-- เปิดห้องได้ (30 Coin)
-- เข้าร่วมได้ (10 Coin)
-- ห้องหมดอายุ 24 ชม. → จ่ายรางวัล
-- Leaderboard อัปเดตแบบ Real-time
+- ✅ เปิดห้องได้ (30 Coin) + cooldown 5 นาที
+- ✅ เข้าร่วมได้ (10 Coin) + cap 20 ครั้ง/วัน
+- ✅ ห้องหมดอายุ 24 ชม. → จ่ายรางวัล (`/api/arena/settle`)
+- ✅ Leaderboard อัปเดต Real-time (อ่านสดจาก DB ทุกครั้ง)
 
 ---
 
@@ -306,7 +308,7 @@
 - [x] Retry: Exponential Backoff (30s→60s→120s, cap 10 นาที) 3 ครั้ง แล้ว FAILED
 - [x] Placeholder แทนภาพขณะรอ — deterministic SVG ตามธาตุ/ระดับความหายาก (route `/api/cards/[id]/image`)
 - [x] Content Moderation (blocklist ตรวจ prompt ก่อนเรียก AI)
-- [ ] Webhook: แจ้งเมื่อภาพพร้อม
+- [x] Webhook: แจ้งเมื่อภาพพร้อม (✅ `lib/image-webhook.ts` — POST เมื่อ COMPLETED/FAILED + HMAC signature (`x-rda-signature`), timeout 8 วิ, ไม่กระทบ flow หลัก; เปิดใช้ด้วย `AI_IMAGE_WEBHOOK_URL` + `AI_IMAGE_WEBHOOK_SECRET`)
 
 ### งาน Frontend
 - [x] Card Thumbnail แสดง Placeholder (ผ่าน image route + onError fallback)
