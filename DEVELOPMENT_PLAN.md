@@ -401,22 +401,24 @@
 - [x] หน้า `/events/[eventId]` — Event Hub (✅ Banner + Countdown + Boss + Milestone + Quest + Shop + Story)
 - [x] Event Banner + Countdown (✅ แสดงเวลาที่เหลือ + สถานะ)
 - [x] Boss Raid UI (Boss HP, Phase, ทีมโจมตี) (✅ หลอด HP + ชื่อ Phase + ค่าเข้า/cap รายวัน/คะแนน/ดาเมจของตัวเอง)
-- [x] Event Quest List (✅)
+- [x] Event Quest List (✅ พร้อมความคืบหน้าจริง + ปุ่มรับรางวัล จาก API `/api/events/[id]/quests`)
 - [x] Milestone Tracker (✅ personal + community พร้อม progress bar และปุ่มรับรางวัล)
 - [x] Event Shop (✅)
 - [x] Story Chapter Reader (✅ แสดงบทที่ปลดล็อก/ยังล็อก)
 
 ### Definition of Done
 - ✅ Event เปิด/ปิด อัตโนมัติ (lifecycle จากเวลา — ทดสอบแล้ว: seed แล้วได้ `ACTIVE` ทันที)
-- ✅ Boss Raid เล่นได้ (ทดสอบจริง: ดาเมจ 3,395 / Event Points 3,734 (+10% element bonus) / mechanics 5 รายการ / หัก 10 Shards → ได้ 7 / boss 1,000,000 → 993,210)
+- ✅ Boss Raid เล่นได้ (ทดสอบจริง: ใช้ combat engine 5v5 กับทีมบอสตาม Phase — ดาเมจ 3,610 / Event Points 3,971 / `simulation { won:false, rounds:5, bossTeamHp:1335 }` / หัก 10 Shards)
 - ✅ Milestones ได้รับรางวัล (Coin เข้า Wallet จริง 250 → 350, รับซ้ำถูกปฏิเสธ, เกณฑ์ไม่ถึงถูกปฏิเสธ)
 - ✅ Community Goal อัปเดตแบบ Real-time (นับรวมทุก raid ใน `EventCommunityProgress` — ตรวจหลัง raid แล้วตัวเลขขยับจริง)
 - ✅ เทสต์: jest 197/197 ผ่าน (เพิ่ม 23 เทสต์ event) + tsc ผ่าน
 
-### หมายเหตุ (งานที่เหลือของ Phase 11)
-- Event Quest progress ยังไม่ hook เข้า metric จริง (มีคำนิยามใน DB แล้ว — ต่อ hook เมื่อทำ Phase 12)
-- Raid ปัจจุบันใช้สูตรดาเมจจากพลังทีม (`teamAtk × 12`) — ยังไม่ผูก combat engine 5v1 เต็มรูปแบบ
-- Community milestone reward (VEIL_SHARDS/CRAFTING_DUST/COSMETIC) บันทึกเป็น `milestonesReached` แล้ว — ยังไม่มีระบบ cosmetic/crafting ปลายทาง
+### หมายเหตุ (เก็บงานครบแล้ว — 2026-09-21)
+- ✅ **Event Quest hook metric จริง** — `EventQuestProgress` + `EventQuestService.recordRaidEvent()` นับ RAID/DAMAGE/SHARDS จาก raid จริง, งวด DAILY/WEEKLY/ALL, รับรางวัล idempotent (Coin + Veil Shards เข้าจริง) + UI แถบความคืบหน้า
+- ✅ **Raid ใช้ combat engine เต็มรูปแบบ** — `simulateRaid()` รัน `simulateBattle()` 5v5 กับทีมบอส (`buildBossTeam()` ตาม Phase) ด้วย seed เดียวกับ battle system (deterministic + replay ได้), API คืน `simulation` ให้ตรวจสอบ
+- ✅ **Reward cosmetic/crafting มีปลายทางจริง** — `UserInventoryItem` + `InventoryService` ผูกกับ milestone claim และ shop purchase, หน้า `/inventory` แสดงของสะสมพร้อมที่มา (source) และเมนู 🎒 คลัง
+
+> สถานะ: Phase 11 ปิดครบทุกข้อ (production-ready สำหรับ beta) — เทสต์ 207/207 ผ่าน
 
 ---
 
