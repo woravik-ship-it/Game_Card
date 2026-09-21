@@ -583,3 +583,38 @@ rune-dominion-arena/
 
 > ✍️ เอกสารนี้เป็น Living Document — ปรับได้ตามความจำเป็นระหว่างพัฒนา
 - Mobile ใช้ Tap-to-Place ได้
+
+---
+
+## 🚀 สถานะการรันจริง (Live Verification — 2026-09-21)
+
+Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ **ยืนยันด้วยการรันจริงบนเครื่องนี้**:
+
+| การตรวจ | คำสั่ง | ผล |
+|---|---|---|
+| Unit/Integration | `npm test` | **232 passed / 20 suites** |
+| Type check | `npx tsc --noEmit` | ผ่าน (exit 0) |
+| Production build | `npm run build` | ผ่าน — 26 หน้า · shared JS 87.3 kB |
+| E2E critical flow (localhost) | `npm run e2e:flow` | **25/25 ผ่าน** |
+| E2E critical flow (public tunnel) | `npm run e2e:flow -- --base <trycloudflare URL>` | **25/25 ผ่าน** |
+| Backup + verify | `npm run backup` / `npm run backup:verify` | 30 ตาราง · checksum ตรง · restore ได้ |
+| Audit แผนเทียบโค้ด | `npm run audit` | ทุกข้อมีหลักฐานจริงหรือมีเหตุผลที่ระบุไว้ |
+
+**บริการที่รันอยู่:** `systemd --user` 3 unit — `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-tunnel`
+
+### 🐞 บั๊กที่พบและแก้ในรอบนี้
+
+1. **Replay verification รายงาน TAMPERED กับทุกรบจริง (Phase 10)**
+   `battle_data` เป็นคอลัมน์ `jsonb` ของ Postgres ซึ่ง **ไม่รักษาลำดับคีย์** แต่ `verifyBattleReplay()` เทียบ log ด้วย `JSON.stringify` ตรงๆ → สตริงไม่เท่ากันเสมอแม้ข้อมูลเหมือนกันทุกค่า
+   → replay ของการต่อสู้จริง (รวมถึง Arena challenge) ถูกตีเป็น "ถูกแก้ข้อมูล" ทั้งหมด
+   **แก้:** ใช้ `stableStringify()` (เรียงคีย์แบบ canonical, ลำดับ array ยังมีผล) ใน `src/services/battle-verify.ts` + เพิ่มเทสต์กัน regression 3 ตัว (คีย์สลับ → VERIFIED, แถม/สลับบรรทัด log → ยังจับได้)
+2. **`scripts/e2e-flow.mjs` อ่าน battle log ผิดที่** — endpoint คืน `data.battleData.log` ไม่ใช่ `data.log` (แก้ฝั่งสคริปต์ทดสอบให้ตรง API จริง)
+
+### 📦 สิ่งที่เพิ่มในรอบนี้ (นอกเหนือ checklist)
+
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `deploy/systemd/*.service` | unit files 3 ตัวสำหรับรันถาวร (postgres · arena · tunnel) |
+| `scripts/e2e-flow.mjs` + `npm run e2e:flow` | E2E critical flow 25 ข้อ ยิง HTTP จริง (ใช้ได้ทั้ง local และ public URL, ใช้ `--no-settle` เพื่อไม่แตะ DB) |
+| `scripts/start-tunnel.sh` + `npm run tunnel` | เปิด public URL + แจ้งลิงก์เข้า Telegram (เก็บ URL ที่ `~/.rune-dominion-tunnel/url.txt`) |
+| `README.md` | อัปเดตสถานะ/tech stack ให้ตรงโค้ดจริง + วิธีรัน production |
