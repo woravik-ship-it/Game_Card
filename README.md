@@ -8,10 +8,10 @@ repo นี้เป็น "โฟลเดอร์แม่" ของโค�
 
 | หัวข้อ | สถานะ |
 |---|---|
-| แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) |
-| เทสต์ | ✅ Jest 232 passed / 20 suites · `tsc --noEmit` ผ่าน |
+| แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) · Phase 13 (ปรับตามคำสั่งผู้ใช้ 6 ข้อ) เสร็จแล้ว |
+| เทสต์ | ✅ Jest 260 passed / 21 suites · `tsc --noEmit` ผ่าน |
 | Production build | ✅ ผ่าน (26 หน้า · shared JS 87.3 kB) |
-| E2E critical flow | ✅ 25/25 ผ่าน (localhost **และ** ผ่าน tunnel สาธารณะ) |
+| E2E critical flow | ✅ 31/31 ผ่าน (localhost **และ** ผ่าน tunnel สาธารณะ) |
 | รันจริงบนเครื่องนี้ | ✅ `systemd --user` 3 unit: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-tunnel` |
 | Public URL | `~/.rune-dominion-tunnel/url.txt` (Cloudflare quick tunnel — เปลี่ยนทุกครั้งที่รีสตาร์ท) |
 | โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` push แล้ว · ⚠️ repo แม่นี้ยังไม่มี remote |
