@@ -387,30 +387,36 @@
 **เป้าหมาย:** Event "Call of the Moonless Gate" 14 วัน
 
 ### งาน Backend
-- [ ] Prisma Schema: Event, EventQuest, EventParticipation, EventReward
-- [ ] Event Lifecycle: UPCOMING → ACTIVE → GRACE_PERIOD → ENDED
-- [ ] Event Currency: Veil Shards
-- [ ] Boss Raid System (4 Phase, Mechanics 8 แบบ)
-- [ ] Personal Milestones
-- [ ] Community Milestones
-- [ ] Event Shop
-- [ ] Story Chapter Unlock
-- [ ] Scheduler: เปิด/ปิด Event อัตโนมัติ
+- [x] Prisma Schema: Event, EventQuest, EventParticipation, EventReward (✅ `EventBoss`, `EventRaidAttempt`, `EventMilestone` (personal/community), `EventShopItem`, `EventShopPurchase`, `EventStoryChapter`, `EventCommunityProgress` + `EventParticipation` เพิ่ม `eventPoints`/`damageDealt` — push ลง DB แล้ว)
+- [x] Event Lifecycle: UPCOMING → ACTIVE → GRACE_PERIOD → ENDED (✅ `EventService.syncStatuses()` คำนวณจากเวลา = lazy ไม่ต้องพึ่ง cron; grace 24 ชม.; POST /api/admin/events/sync สำหรับ scheduler)
+- [x] Event Currency: Veil Shards (✅ เก็บใน `EventParticipation.currencyEarned/Spent` แบบ integer — แยกจาก Coin ของ Wallet)
+- [x] Boss Raid System (4 Phase, Mechanics 8 แบบ) (✅ 4 Phase ตามช่วง HP 100–76/75–51/50–26/25–0% + mechanics ครบ 10 แบบ: Veil Shield, Rune Fracture, Moonless Mark, Eclipse Pulse, Rift Hunger, Ember Break, Gale Shift, Rooted Guard, Tide Cleanse, Dawn Resonance)
+- [x] Personal Milestones (✅ 7 ระดับตาม GDD §13.6 — 2,000→75,000 points, claim idempotent)
+- [x] Community Milestones (✅ 5 ระดับตาม GDD §13.7 — 1M→50M damage)
+- [x] Event Shop (✅ 4 ไอเทม ซื้อด้วย Veil Shards + จำกัดต่อผู้ใช้ + idempotency key)
+- [x] Story Chapter Unlock (✅ 4 บท ปลดล็อกตาม community damage)
+- [x] Scheduler: เปิด/ปิด Event อัตโนมัติ (✅ `EventService.syncStatuses()` + admin endpoint)
 
 ### งาน Frontend
-- [ ] หน้า `/events/[eventId]` — Event Hub
-- [ ] Event Banner + Countdown
-- [ ] Boss Raid UI (Boss HP, Phase, ทีมโจมตี)
-- [ ] Event Quest List
-- [ ] Milestone Tracker
-- [ ] Event Shop
-- [ ] Story Chapter Reader
+- [x] หน้า `/events/[eventId]` — Event Hub (✅ Banner + Countdown + Boss + Milestone + Quest + Shop + Story)
+- [x] Event Banner + Countdown (✅ แสดงเวลาที่เหลือ + สถานะ)
+- [x] Boss Raid UI (Boss HP, Phase, ทีมโจมตี) (✅ หลอด HP + ชื่อ Phase + ค่าเข้า/cap รายวัน/คะแนน/ดาเมจของตัวเอง)
+- [x] Event Quest List (✅)
+- [x] Milestone Tracker (✅ personal + community พร้อม progress bar และปุ่มรับรางวัล)
+- [x] Event Shop (✅)
+- [x] Story Chapter Reader (✅ แสดงบทที่ปลดล็อก/ยังล็อก)
 
 ### Definition of Done
-- Event เปิด/ปิด อัตโนมัติ
-- Boss Raid เล่นได้
-- Milestones ได้รับรางวัล
-- Community Goal อัปเดตแบบ Real-time
+- ✅ Event เปิด/ปิด อัตโนมัติ (lifecycle จากเวลา — ทดสอบแล้ว: seed แล้วได้ `ACTIVE` ทันที)
+- ✅ Boss Raid เล่นได้ (ทดสอบจริง: ดาเมจ 3,395 / Event Points 3,734 (+10% element bonus) / mechanics 5 รายการ / หัก 10 Shards → ได้ 7 / boss 1,000,000 → 993,210)
+- ✅ Milestones ได้รับรางวัล (Coin เข้า Wallet จริง 250 → 350, รับซ้ำถูกปฏิเสธ, เกณฑ์ไม่ถึงถูกปฏิเสธ)
+- ✅ Community Goal อัปเดตแบบ Real-time (นับรวมทุก raid ใน `EventCommunityProgress` — ตรวจหลัง raid แล้วตัวเลขขยับจริง)
+- ✅ เทสต์: jest 197/197 ผ่าน (เพิ่ม 23 เทสต์ event) + tsc ผ่าน
+
+### หมายเหตุ (งานที่เหลือของ Phase 11)
+- Event Quest progress ยังไม่ hook เข้า metric จริง (มีคำนิยามใน DB แล้ว — ต่อ hook เมื่อทำ Phase 12)
+- Raid ปัจจุบันใช้สูตรดาเมจจากพลังทีม (`teamAtk × 12`) — ยังไม่ผูก combat engine 5v1 เต็มรูปแบบ
+- Community milestone reward (VEIL_SHARDS/CRAFTING_DUST/COSMETIC) บันทึกเป็น `milestonesReached` แล้ว — ยังไม่มีระบบ cosmetic/crafting ปลายทาง
 
 ---
 
