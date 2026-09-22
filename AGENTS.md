@@ -68,3 +68,28 @@ bash /home/woravik/E2_Lab/cline-bot/set-model.sh --provider opencode-go --model 
   (ถ้าผู้ใช้พิมพ์สั่งเองชัดเจน = ได้รับอนุญาตแล้ว ให้ทำทันที)
 - Token/API key **ห้ามส่งกลับในแชท**
 - สคริปต์คืน error → รายงานตามจริง **ห้ามเดาว่าน่าจะสำเร็จ**
+
+---
+
+## 🔧 ความเสถียรของบอท (เพิ่ม 2026-09-22 หลังเหตุ "บอทเงียบ")
+
+**สาเหตุที่เคยเกิดจริง (พบใน log):**
+1. cline CLI อัปเดตตัวเองกลางคัน (`npm update -g cline` → 3.0.62→3.0.63) ทำให้ binary ถูกสลับระหว่างรัน
+   → hub ตายด้วย `ETXTBSY` / `Unable to locate executable .../cline` → connector หยุด → บอทเงียบ
+2. `cline-telegram.service` เป็น `Type=oneshot` + `RemainAfterExit=yes` → systemd มอง unit ว่า active
+   แม้ process ลูก (`connect telegram … -i`) ตายแล้ว จึงไม่มีอะไร restart ให้ ต้องสั่งมือ
+
+**แก้ถาวรแล้ว:**
+1. **ปิด auto-update ของ CLI** — `~/.cline/data/settings/global-settings.json` → `"autoUpdateEnabled": false`
+   อัปเดตเองเมื่อต้องการ: `npm i -g cline@latest && systemctl --user restart cline-hub.service`
+2. **Watchdog ทุก 2 นาที** — `cline-telegram-watchdog.timer` → `~/E2_Lab/cline-bot/telegram-watchdog.sh`
+   - hub ไม่ตอบ → restart `cline-hub` · hub ดีแต่ connector หาย → restart `cline-telegram`
+   - เพดาน 6 ครั้ง/ชม. + ส่ง Telegram แจ้งเองเมื่อซ่อม
+   - เช็คมือ: `bash ~/E2_Lab/cline-bot/telegram-watchdog.sh --status` · log: `~/E2_Lab/cline-bot/watchdog.log`
+3. **ช่องทางสำรองส่งข้อความ** — `python3 ~/E2_Lab/cline-bot/tg-send.py --text "..."` (หรือ `--file`)
+   = Bot API ตรง, plain text (ไม่ตั้ง parse_mode), ตัดท่อนละ 3,800 ตัวอักษร, retry 3 ครั้ง
+
+**กฎการตอบในแชท (กัน `Telegram reply failed: Bad Request`):**
+- ตอบสั้น ≤ ~2,500 ตัวอักษร · เลี่ยงตาราง markdown ใหญ่ / โค้ดบล็อกยาว / `*` `_` กระจัดกระจาย
+- ถ้าต้องรายงานยาว: เขียนไฟล์ในเครื่อง → ตอบสรุปสั้นๆ + บอกพาธ (หรือส่งไฟล์ผ่าน `tg-send.py --file`)
+- ผู้ใช้บอก "ไม่เห็นข้อความ / บอทเงียบ" → ดู `watchdog.log` แล้วทดสอบส่งด้วย `tg-send.py`
