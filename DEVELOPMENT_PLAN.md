@@ -843,3 +843,49 @@ Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ 
 - เพิ่มสคริปต์ `npm run admin:grant` (`scripts/grant-admin.ts`): `--list` ดูสิทธิ์ · `<username> [ADMIN|MODERATOR|PLAYER]` ตั้ง/ถอดสิทธิ์
 - ตั้ง `woravik` เป็น **ADMIN** แล้ว (ล็อกอินใหม่ 1 ครั้งจึงจะมีผล เพราะ role ฝังใน session JWT)
 - ทดสอบจริงด้วย session ที่เซ็นจาก `AUTH_SECRET`: ADMIN → `/api/admin/users` 200 · `/api/admin/security` 200 · `/admin` 200 · PLAYER → 403 และ `/admin` redirect (307) กลับหน้าแรก · ไม่มี cookie → 403
+
+### แสงบนการ์ด: แสงเลื่อม (foil) + แสงเรืองแบบไอเทมตีบวก (Phase 14.9–14.10, 2026-09-22/23)
+
+**คำสั่งผู้ใช้:** *"ต้องการเอฟเฟกต์แสงเลื่อมครอบบนการ์ดอีกชั้น"* → *"ทำ Effect การ์ด ให้เหมือน Item ตีบวกในเกม Mu Online ที่เป็นแสงๆ สวย"*
+
+| รอบ | สิ่งที่ทำ | ผล |
+|---|---|---|
+| 14.9 | ชั้นแสงเลื่อม CSS ล้วน: tint (เฉดขอบ) · prism (วงรุ้งในช่องภาพ) · sweep (แสงกวาด) · sparkle (ประกาย) ตามระดับความหายาก | ✅ ใช้ได้ — คงไว้ (`src/lib/card-foil.ts` + `CardFoil.tsx`) |
+| 14.9.1 | ออร่า `box-shadow` รอบขอบ | ❌ ผู้ใช้บอกดูเป็น "กรอบสี่เหลี่ยม" ไม่มีแสง → ลบ |
+| 14.9.2 | เปลวไฟ 9 ลูกกระพริบรอบขอบ (ตีบวกสไตล์ MU) | ❌ ผู้ใช้บอก "พอๆ ไม่ได้" → revert ทั้งหมด (`00863b4`) |
+| **14.10** | **แสงเรืองแบบไอเทมตีบวก วาดด้วย SVG glow** (`feGaussianBlur` + gradient + clip-path รู) — 5 ดีไซน์ให้เลือก | ✅ ตรวจด้วยภาพจริง 5 ดีไซน์ |
+| **14.11** | **นำดีไซน์ `inner` ไปใช้จริง** (ผู้ใช้เลือก *"ลองทำแบบ inner"*) — ผูกเข้า `CardFace` + deploy ขึ้น production | ✅ ใช้จริงทุกหน้า |
+
+**เหตุที่ 2 รอบแรกไม่ผ่าน (บันทึกไว้กันทำซ้ำ):** ใช้ `box-shadow` (แข็งเป็นสี่เหลี่ยม) และลูกเปลวไฟ (ไม่ใช่ "แสง") · กล่อง grid มี `overflow-hidden` ตัดแสงนอกการ์ด · และ **ประเมินผลจากคำบรรยาย ไม่ได้ดูภาพจริง**
+
+**รอบ 14.10 แก้ที่รากของปัญหา:**
+1. เปลี่ยนไปวาดด้วย **SVG** — `feGaussianBlur` ใช้หน่วย user unit → สเกลตามขนาดการ์ดทุกขนาด (เดิม px ทำให้แต่ละหน้าไม่เหมือนกัน) และแสง "เกาะรูปทรงการ์ด" เหมือนแสงเกาะไอเทมจริง
+2. **`clip-path` รูแบบ evenodd** → วงแสงอยู่ "นอกการ์ด" และ "นอกช่องภาพ" เท่านั้น → **การ์ดคม ไม่มีฝ้า** (ผู้ใช้เคยติเรื่องฝ้าทับภาพมาก่อน)
+3. **บังคับดูภาพจริง**: `npm run shoot:aura` ถ่ายด้วย Chrome จริง (CDP) ทุกครั้งก่อนรายงานผล
+4. ระดับแสงเทียบเคียง MU: `+7 ขอบเรือง` → `+9 + ประกายดาว` → `+11 + เสาแสง` → `+13 ครบชุด + ประกายลอย` (COMMON/UNCOMMON เรียบตามกติกาเดิม)
+5. ดีไซน์ `inner` ตัดแสงในกรอบ → ใช้ได้ทุกหน้าโดยไม่ต้องแก้ layout; ดีไซน์นอกกรอบต้องมีที่ว่าง 12%
+
+**ไฟล์:** `src/lib/card-aura.ts` · `src/components/cards/CardAura.tsx` · `src/app/aura-preview/page.tsx` · `src/app/globals.css` (บล็อก card-aura) · `scripts/shoot-aura-preview.mjs` · `tests/unit/card-aura.test.ts` (22 เทสต์)
+
+**หลักฐาน:** `tsc --noEmit` 0 error · `next lint` ไม่มี warning ใหม่ · `jest` **312 ผ่าน / 25 suites** · ภาพจริง 11 ใบ (`public/_shots/v-tier-*.png`, `v-mythic-MYTHIC-*.png`) · พรีวิว `/aura-preview`
+
+**ค้างอยู่ (รอผู้ใช้เลือก):** ยังไม่ผูก `CardAura` เข้ากับ `CardFace`/หน้าจริง (เพื่อไม่ให้เปลี่ยนหน้าจริงก่อนอนุมัติ) · ยังไม่ deploy ขึ้น production (เพื่อไม่ให้ public URL ของ tunnel เปลี่ยน)
+
+### นำดีไซน์ `inner` ไปใช้จริง (Phase 14.11, 2026-09-23)
+
+**คำสั่งผู้ใช้:** *"ลองทำแบบ inner"* (เลือกจาก 5 ดีไซน์ของรอบ 14.10)
+
+| สิ่งที่ทำ | ไฟล์ |
+|---|---|
+| ตั้งดีไซน์ที่ใช้จริงเป็น `inner` (จุดเดียวคุมทั้งเกม) | `src/lib/card-aura.ts` → `DEFAULT_AURA_VARIANT` |
+| ให้ `CardFace` วาดชั้น aura เอง (มี prop `auraVariant?` ไว้ทดลองดีไซน์อื่น) | `src/components/cards/CardFace.tsx` |
+| แก้บั๊กพรีวิวแสงซ้อน 2 ชั้น (ส่ง `auraVariant` ให้ `CardFace` แทนการวาด `CardAura` ซ้ำ) | `src/app/aura-preview/page.tsx` |
+| เพิ่ม `--aura` → วัดชั้นแสงจาก **หน้าจริง** ด้วย Chrome (ไม่ต้องดูด้วยตา) | `scripts/inspect-cards-page.mjs` |
+| เทสต์เพิ่ม 4 ตัว (ดีไซน์ตั้งต้น/พอดีกรอบ/องค์ประกอบครบ/COMMON ยังเรียบ) | `tests/unit/card-aura.test.ts` |
+
+**ทำไม `inner` ไม่ต้องแก้ layout หน้าไหนเลย:** viewBox = ผืนการ์ดพอดี (`0 0 420 600`) + `inset: 0` + `overflow: hidden` → แสงอยู่ในกรอบการ์ด 100% (ดีไซน์อื่นต้องมีที่ว่าง 12% รอบการ์ดและห้ามกล่องแม่ `overflow-hidden`)
+
+**หลักฐานจากหน้าจริง (วัดด้วย Chrome + session แอดมิน):** `/cards` → aura 4 ใบ (RARE/EPIC) จาก 12 ใบ ขนาด 222×317 พอดีกล่องการ์ดทุกใบ · `/admin/cards` → 13 ใบ ขนาด 80×114 พอดีทุกใบ · ทุกใบ `mix-blend-mode: screen` + `pointer-events: none` + `aria-hidden="true"` · อนิเมชันรันครบ · COMMON/UNCOMMON ไม่มีชั้นแสงเลย (กติกาเดิมไม่หลุด) · ภาพจริง: `public/_shots/real-cards-inner.png`, `real-admin-inner.png`, `aura-MYTHIC-inner.png`
+
+**🐞 กับดักตอน deploy (เจอจริงรอบนี้):** `.env` ตั้ง `NODE_ENV="development"` → `npm run build` ตรงๆ จะเข้าโหมด dev แล้วล้ม ("Export encountered errors" หลายหน้า) ต้องสั่ง **`NODE_ENV=production npm run build`** (systemd ทับค่าให้ตอนรันจริงอยู่แล้ว)
+
