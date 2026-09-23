@@ -889,3 +889,5 @@ Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ 
 
 **🐞 กับดักตอน deploy (เจอจริงรอบนี้):** `.env` ตั้ง `NODE_ENV="development"` → `npm run build` ตรงๆ จะเข้าโหมด dev แล้วล้ม ("Export encountered errors" หลายหน้า) ต้องสั่ง **`NODE_ENV=production npm run build`** (systemd ทับค่าให้ตอนรันจริงอยู่แล้ว)
 
+**รอบ 14.11.1 (2026-09-23) — ถอด "ประกายดาว" (flare) ออกจาก `inner`:** ผู้ใช้รีวิวบนการ์ดจริงหลัง deploy — *"ยังไม่ถูกใจ โดยเฉพาะประกายดาว ไม่เหมาะเลย"* → `auraLayers('inner')` เหลือ `halo + sparks` (`flare: false`) · เทสต์/พรีวิว/เอกสารอัปเดตตาม · ดีไซน์อื่นในหน้าพรีวิวยังมีประกายดาวไว้เทียบ · รีวิวโค้ดรอบเดียวกัน: กันพรีวิวพังเมื่อ `?variant=` ผิด + uid ของ SVG รวม variant กัน id ชน + `CardAura` default ตรงกับดีไซน์จริง
+
