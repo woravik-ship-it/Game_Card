@@ -46,12 +46,24 @@
 
 ## 🔀 กฎการสลับ model
 
-**ห้ามแก้ `~/.cline/data/settings/providers.json` ตรงๆ** (ทำให้ connector พัง)
-ให้ผ่าน dashboard API เท่านั้น:
+**การสลับรุ่นโดยคน/agent → ผ่าน dashboard API เท่านั้น** (มี .bak + ตรวจค่าให้):
 
 ```bash
 bash /home/woravik/E2_Lab/cline-ctl/scripts/set-model.sh --provider opencode-go --model deepseek-v4.1-flash --wait 45
 ```
+
+> ⚠️ **แก้กฎ 2026-09-24** (เดิมเขียนว่า "ห้ามแก้ `providers.json` ตรงๆ เด็ดขาด"):
+> ห้าม **แก้ด้วยมือ/hand-edit** ไฟล์นี้ แต่ **watchdog ซ่อมอัตโนมัติได้** — เขียนแบบ atomic
+> (temp + `os.replace` + สำรอง `providers.json.repair-bak.<ts>` + อ่านกลับตรวจว่าตรง)
+>
+> **เหตุจริงที่ทำให้ต้องแก้กฎ:** ตัว CLI refresh OAuth token ของ provider `cline` ทุกชั่วโมง
+> แล้วเขียน `lastUsedProvider = cline` ทับรุ่นที่ผู้ใช้เลือก (โค้ดในไบนารี:
+> `saveProviderSettings` → `lastUsedProvider: setLastUsed!==!1 ? X : $.lastUsedProvider`)
+> → ทุกชั่วโมงรุ่นจะเด้งกลับเป็น `cline/google/gemma-4-31b-it:free` (รุ่นฟรีที่โควต้าหมดแล้ว
+> = chat ไม่ตอบ) · ซ่อมผ่าน panel API อย่างเดียวไม่พอ เพราะ panel ล่ม/rate limit 429/
+> restart connector ทับงานที่กำลังรัน
+> ⇒ ตัวซ่อมคือ `watch/check.py` (timer 2 นาที + `cline-ctl-drift.path` เฝ้าไฟล์ → ซ่อมใน ~2 วิ)
+> และ **การซ่อมไม่ต้อง restart connector** (connector อ่าน providers.json ตอนเริ่ม session ใหม่)
 
 - `--wait N` = หน่วง N วินาทีก่อนยิงคำขอ (จำเป็นเมื่อสั่งจากในแชท เพราะ POST สำเร็จ
   แล้ว dashboard จะ restart connector — ต้องให้คำตอบถึงผู้ใช้ก่อน)
