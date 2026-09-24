@@ -871,7 +871,23 @@ Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ 
 
 **ค้างอยู่ (รอผู้ใช้เลือก):** ยังไม่ผูก `CardAura` เข้ากับ `CardFace`/หน้าจริง (เพื่อไม่ให้เปลี่ยนหน้าจริงก่อนอนุมัติ) · ยังไม่ deploy ขึ้น production (เพื่อไม่ให้ public URL ของ tunnel เปลี่ยน)
 
-### ดีไซน์ `flow` — เปลวไฟ/แสงไหล ที่ไม่ทำการ์ดเสียความคมชัด (Phase 14.12, 2026-09-24)
+### เอฟเฟกต์ Canvas 2D — ดีไซน์ `neon` (Phase 14.13, 2026-09-24)
+
+**คำสั่งผู้ใช้ (ส่ง prompt มาให้ทำตาม):**
+*"เขียนทับด้วยระบบพิกัด 2D ธรรมดา จะใช้คุณสมบัติการเรืองแสงและการเบลอของ Canvas
+`ctx.globalCompositeOperation='lighter'` … `ctx.shadowBlur = 20; ctx.shadowColor='#00ffff';`
+เพื่อสร้างออร่ารอบตัวการ์ด"* (หลังดีไซน์ SVG ทั้ง `inner`/`flow` ยังไม่ถูกใจ)
+
+| สิ่งที่ทำ | ผล |
+|---|---|
+| `card-canvas.ts` (pure) + `CardAuraCanvas.tsx` — วาดด้วย Canvas 2D จริง: `globalCompositeOperation='lighter'`, `shadowBlur`/`shadowColor`, ลำแสงไหล (setLineDash+lineDashOffset), อนุภาคไหลตามเส้นรอบ, เปลวไฟ (quadratic + แกว่ง) | ✅ ใช้งานได้ (รอบนี้รอผู้ใช้เลือกจากภาพจริง) |
+| clip 2 ชั้น (`outsideArt` + วงแหวนขอบการ์ด) ⇒ ภาพ/ข้อความคม 100% | ✅ ตรวจด้วยพิกเซลจริง = alpha 0 ทับช่องภาพ |
+| `scripts/inspect-card-canvas.mjs` — ตรวจพิกเซลจริง (วาดไหม/มีแสงขอบไหม/ทับภาพไหม) | ✅ `npm run inspect:canvas` |
+| `scripts/shoot-aura-preview.mjs --freeze N` — แช่เวลาให้ภาพนิ่งเทียบดีไซน์ได้คงที่ | ✅ |
+| ประหยัดแรง: หยุดวาดเมื่อพ้นจอ/แท็บซ่อน/การ์ดเล็ก (<120px) · เคารพ prefers-reduced-motion | ✅ |
+
+**หลักฐาน:** `tsc` 0 error · `next lint` ไม่มี warning · **jest 347 ผ่าน / 26 suites** · `npm run inspect:canvas` ผ่านทุกการ์ด (วาดจริง 112,937 px · ขอบ alpha=18 · ทับช่องภาพ 0/0/0) · ภาพ `public/_shots/neon-MYTHIC-neon.png`
+
 
 **คำสั่งผู้ใช้ (รีวิวการ์ดจริง ดีไซน์ `inner` ระดับ LEGENDARY):**
 *"แบบนี้ใกล้เคียง แต่แสงทำให้การ์ดเสียความคมชัด แล้วที่อยากได้ อยากได้ เหมือนเปรวไฟ หรือการไหล เหมือนน้ำ"*
