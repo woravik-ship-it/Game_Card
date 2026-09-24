@@ -50,7 +50,7 @@
 ให้ผ่าน dashboard API เท่านั้น:
 
 ```bash
-bash /home/woravik/E2_Lab/cline-bot/set-model.sh --provider opencode-go --model deepseek-v4.1-flash --wait 45
+bash /home/woravik/E2_Lab/cline-ctl/scripts/set-model.sh --provider opencode-go --model deepseek-v4.1-flash --wait 45
 ```
 
 - `--wait N` = หน่วง N วินาทีก่อนยิงคำขอ (จำเป็นเมื่อสั่งจากในแชท เพราะ POST สำเร็จ
@@ -65,8 +65,8 @@ bash /home/woravik/E2_Lab/cline-bot/set-model.sh --provider opencode-go --model 
 
 ## 📋 ตรวจสถานะ model / แจ้งผล
 
-- `bash ~/E2_Lab/cline-dashboard/model-status-notify.sh --check` → ส่งรายงานเข้า Telegram เอง
-- `python3 ~/E2_Lab/cline-dashboard/model_health.py --status` → สรุปว่าโมเดลไหนใช้ได้
+- `bash ~/E2_Lab/cline-ctl/scripts/model-status-notify.sh --check` → ส่งรายงานเข้า Telegram เอง
+- `python3 ~/E2_Lab/cline-ctl/watch/model_health.py --status` → สรุปว่าโมเดลไหนใช้ได้
 
 ## 🔒 ความปลอดภัย
 
@@ -88,11 +88,11 @@ bash /home/woravik/E2_Lab/cline-bot/set-model.sh --provider opencode-go --model 
 **แก้ถาวรแล้ว:**
 1. **ปิด auto-update ของ CLI** — `~/.cline/data/settings/global-settings.json` → `"autoUpdateEnabled": false`
    อัปเดตเองเมื่อต้องการ: `npm i -g cline@latest && systemctl --user restart cline-hub.service`
-2. **Watchdog ทุก 2 นาที** — `cline-telegram-watchdog.timer` → `~/E2_Lab/cline-bot/telegram-watchdog.sh`
+2. **Watchdog ทุก 2 นาที** — `cline-ctl-check.timer` → `~/E2_Lab/cline-ctl/watch/check.py`
    - hub ไม่ตอบ → restart `cline-hub` · hub ดีแต่ connector หาย → restart `cline-telegram`
    - เพดาน 6 ครั้ง/ชม. + ส่ง Telegram แจ้งเองเมื่อซ่อม
-   - เช็คมือ: `bash ~/E2_Lab/cline-bot/telegram-watchdog.sh --status` · log: `~/E2_Lab/cline-bot/watchdog.log`
-3. **ช่องทางสำรองส่งข้อความ** — `python3 ~/E2_Lab/cline-bot/tg-send.py --text "..."` (หรือ `--file`)
+   - เช็คมือ: `bash ~/E2_Lab/cline-ctl/watch/check.py --status` · log: `~/E2_Lab/cline-ctl/watch/check.log`
+3. **ช่องทางสำรองส่งข้อความ** — `python3 ~/E2_Lab/cline-ctl/tg/tg-send.py --text "..."` (หรือ `--file`)
    = Bot API ตรง, plain text (ไม่ตั้ง parse_mode), ตัดท่อนละ 3,800 ตัวอักษร, retry 3 ครั้ง
 
 **กฎการตอบในแชท (กัน `Telegram reply failed: Bad Request`):**
