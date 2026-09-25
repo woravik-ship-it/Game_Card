@@ -262,6 +262,8 @@
 - [x] แสดงผลการต่อสู้ทันทีหลังท้าทาย
 - [x] หน้า `/arena/create` — เลือกทีมป้องกัน + เปิดห้อง
 
+
+
 ### Definition of Done
 - ✅ เปิดห้องได้ (30 Coin) + cooldown 5 นาที
 - ✅ เข้าร่วมได้ (10 Coin) + cap 20 ครั้ง/วัน
@@ -928,4 +930,62 @@ Phase 0–12 ครบตาม checklist (209/209 · ค้าง 0) และ 
 **🐞 กับดักตอน deploy (เจอจริงรอบนี้):** `.env` ตั้ง `NODE_ENV="development"` → `npm run build` ตรงๆ จะเข้าโหมด dev แล้วล้ม ("Export encountered errors" หลายหน้า) ต้องสั่ง **`NODE_ENV=production npm run build`** (systemd ทับค่าให้ตอนรันจริงอยู่แล้ว)
 
 **รอบ 14.11.1 (2026-09-23) — ถอด "ประกายดาว" (flare) ออกจาก `inner`:** ผู้ใช้รีวิวบนการ์ดจริงหลัง deploy — *"ยังไม่ถูกใจ โดยเฉพาะประกายดาว ไม่เหมาะเลย"* → `auraLayers('inner')` เหลือ `halo + sparks` (`flare: false`) · เทสต์/พรีวิว/เอกสารอัปเดตตาม · ดีไซน์อื่นในหน้าพรีวิวยังมีประกายดาวไว้เทียบ · รีวิวโค้ดรอบเดียวกัน: กันพรีวิวพังเมื่อ `?variant=` ผิด + uid ของ SVG รวม variant กัน id ชน + `CardAura` default ตรงกับดีไซน์จริง
+
+## Phase 14.14 — เอฟเฟกต์การ์ดตาม GIF อ้างอิง (2026-09-25)
+
+**คำสั่งผู้ใช้:** *"ให้แก้ effect เป็นเหมือน ตัวอย่างตาม Link"* + ส่ง GIF 7 ใบ (dreamassets 419–424)
+· ก่อนหน้านี้ติว่า *"แสงสีข้างในที่ทับภาพอยู่ หมุนๆ มันแหว่ง เวลาหมุน แถมทำให้ภาพสีเพี้ยน"*
+
+| สิ่งที่ทำ | ไฟล์ |
+|---|---|
+| แยกเฟรม GIF จริง (PIL) → สรุปสเปก: แถบแสงหางดาวหางวนรอบตัว · วงแหวนฐานใต้เท้า · แสงกวาดบนโลหะ | — |
+| เรขาคณิต pure: `orbitSpec` · `orbitGeometry` · `baseRingGeometry` · `ringPulse` · `wispRibbon` · `sheenBand` | `src/lib/card-canvas.ts` |
+| วาด 3 ชั้นใหม่ใน Canvas (clip เฉพาะ "ช่องภาพ"): แสงกวาด → วงแหวนฐาน → แถบแสงวนรอบ (3 pass: ฟุ้ง/แกน/ไส้หัว) | `src/components/cards/CardAuraCanvas.tsx` |
+| ตั้งดีไซน์ที่ใช้จริงทั้งเกมเป็น `neon` (จาก `inner`) — จุดเดียวคุมทั้งเกม | `src/lib/card-aura.ts` |
+| แก้ต้นเหตุ "แหว่ง/สีเพี้ยน": วงกลม `conic-gradient` หมุน + `color-dodge` → แถบเฉดรุ้งเต็มช่องภาพ + `screen` | `src/app/globals.css` |
+| คง foil (tint/sweep/sparkle) ทุกใบ แต่ `disablePrism` เมื่อดีไซน์เป็น Canvas | `src/components/cards/CardFace.tsx` |
+| เทสต์ใหม่ 12 ตัว + อัปเดตบล็อก "ดีไซน์ตั้งต้น" | `tests/unit/card-canvas.test.ts` · `tests/unit/card-aura.test.ts` |
+| เกณฑ์ตรวจพิกเซลใหม่ 4 ข้อ (วาดจริง · มีแสงในช่องภาพ · เกาะขอบการ์ด · ไม่ล้นออกนอกช่องภาพ) | `scripts/inspect-card-canvas.mjs` |
+
+**หลักฐาน:** `tsc --noEmit` 0 error · `next lint` ไม่มี warning ใหม่ · **jest 361 ผ่าน / 26 suites** ·
+`NODE_ENV=production npm run build` ผ่าน + restart `rune-dominion-arena` ·
+`npm run inspect:canvas -- --query 'variant=neon&rarity=MYTHIC'` ✅ 4/4 (วาดจริง 167,114 px · มีแสงในช่องภาพ 1,631 จุด · ชื่อ/ข้อความ/สเตตัส = 0) ·
+`--query 'variant=neon&rarity=RARE'` ✅ 4/4 (maxA 168) · ภาพจริง `public/_shots/chk3-MYTHIC-neon.png` + `chk4-MYTHIC-neon.png`
+
+**ย้อนกลับได้ทันที:** ตั้ง `DEFAULT_AURA_VARIANT = 'inner'` ที่ `src/lib/card-aura.ts` (ดีไซน์เดิมยังอยู่ครบในหน้าพรีวิว)
+
+---
+
+## Phase 16 — หน้าสนามรบแบบใหม่ (2026-09-25)
+
+**คำสั่งผู้ใช้:** *"หน้าสนามรบต้องแสดงการ์ดเรียงบน-ล่าง (เรา = ล่าง / คู่ต่อสู้ = บน) พร้อม HP/MP ต่อใบ
++ สัญลักษณ์ดาบ (คนโจมตี) / โล่ (คนรับ) + เอฟเฟกต์แดงที่คนโดนตี + ข้อความล่าสุดอยู่ด้านบน
++ แถบ HP รวมทั้งสองทีม"*
+
+| สิ่งที่ทำ | ไฟล์ |
+|---|---|
+| ตัวเล่นเทปแบบ pure: `buildReplayFrames(teamA, teamB, log)` → เฟรมต่อเหตุการณ์ (`frames = log + 1`, เฟรม -1 = ก่อนเริ่ม) ใช้ `hpAfter`/`manaAfter` ที่ engine บันทึกไว้ ไม่คำนวณดาเมจซ้ำ | `src/services/battle-replay.ts` (ใหม่) |
+| สถานะบนการ์ด: 🔥 เผาไหม้ (สแต็ก 1-3) · 💧 อ่อนแอ · 🛡️ โล่ · ⚡ ว่องไว — เลขเทิร์น/สแต็กเดินตาม engine เป๊ะ (ลดเทิร์นท้ายเทิร์นของเจ้าตัว, เทิร์นที่โดนเผาไม่นับ + เผาไม่เกิน 3 สแต็ก) + `cardStatuses()` ใช้ร่วมกับตัวตรวจหน้าจริง | เดียวกัน |
+| หน้าสนามรบ: คู่ต่อสู้ 5 ใบบน / ทีมเรา 5 ใบล่าง · HP/MP ต่อใบ (แถบ + ตัวเลข) · ขอบสีตามธาตุ · ⚔️ คนโจมตี / 🛡️ + คลุมแดง คนรับ · การ์ดตาย = เทา + 💀 · ข้อความ log ใหม่สุดอยู่บน · แถบ HP รวม 2 ทีม · ปุ่ม เริ่มเล่น/หยุด/เริ่มใหม่/ข้าม + ความเร็ว x1/x4/x8 | `src/app/(game)/battle/[id]/page.tsx` |
+| เลิกฮาร์ดโค้ด `100` ในหน้าจอ → ใช้ `BATTLE_MANA_MAX` จาก constants | เดียวกัน |
+| ห้อง Arena: ท้าสำเร็จ → พาไปดูผลในห้อง battle อย่างเดียว (ไม่ขึ้นข้อความสรุปผลซ้ำก่อนเปลี่ยนหน้า) | `src/app/(game)/arena/[id]/page.tsx` |
+| ตัวตรวจหน้าจริงด้วย Chrome (CDP) 7 ข้อ: การ์ด 10 ใบเรียงบน-ล่าง · HP/MP ทุกใบ · ⚔️🛡️แดงกลางรบ · HP รวม = ผลรวมการ์ด · log ใหม่สุดบน · ไอคอนสถานะตรงข้อมูล · ไม่มี modal บัง | `scripts/inspect-battle-field.mjs` (ใหม่) · `npm run inspect:battle` |
+| เทสต์ 15 ตัว รวมชุดเทียบ **engine จริง** (`simulateBattle` + seed → HP เฟรมสุดท้ายตรง `teamAHpRemaining/B` เป๊ะ, ใบตาย = ใบที่มี log faint) | `tests/unit/battle-replay.test.ts` (ใหม่) |
+
+**🐞 ต้นเหตุที่งานค้างรอบก่อน (แก้แล้ว):** ตัวตรวจหน้าจริงปิด onboarding modal ไม่ได้ ⇒ ภาพที่ได้ถูก modal บังทั้งใบ (ผู้ใช้รีวิวไม่ได้)
+- สาเหตุจริง: selector เขียน escape ของ class `z-[100]` **ซ้อน 2 ชั้น** ใน template literal
+  → ฝั่ง Chrome ได้ selector `.z-[100]` ซึ่งไม่ถูกต้องตาม CSS → `SyntaxError` →
+  และโค้ดเดิมทิ้งผลลัพธ์ (`void dialogState`) จึงไม่ error ให้เห็น · modal จึงค้างทุกครั้ง
+- แก้: เพิ่ม `data-onboarding-modal` ที่ `OnboardingModal` + หา modal ด้วย attribute selector ·
+  ตั้งธง localStorage "เคยดู onboarding" ผ่าน `Page.addScriptToEvaluateOnNewDocument` (จำลองผู้เล่นเดิม) ·
+  วนปิด-ตรวจซ้ำ + เพิ่มข้อตรวจ "ไม่มี modal บัง" (fail ให้เห็น ไม่เงียบ)
+
+**หลักฐาน (2026-09-25):** `tsc --noEmit` 0 error · `next lint` ไม่มี warning ในไฟล์ที่แก้ · **jest 421 ผ่าน / 28 suites** ·
+`NODE_ENV=production npm run build` ผ่าน + restart `rune-dominion-arena` ·
+`npm run inspect:battle` ✅ **7/7** บนการ์ดศึกจริง 2 อัน (การ์ด 10 ใบ ห่างแถว 125-131 px · HP รวม 477/477 · ⚔️1 🛡️1 แดง1 ·
+log 58 เหตุการณ์ใหม่สุดอยู่บน · `BURN=1` มีไอคอนจริง · modal = gone) ·
+ภาพจริง `public/_shots/battle-field.png` (จบศึก) + `battle-field-status.png` (มีการ์ดติด 🔥)
+
+**ย้อนกลับได้:** ไม่ผูกกับ API/DB ใดๆ — ถ้าต้องถอยให้ `git checkout` ไฟล์ `battle/[id]/page.tsx`
++ ลบ `src/services/battle-replay.ts` (หน้าจะกลับไปใช้ `log.slice(0, visibleCount)` แบบเดิม)
 
