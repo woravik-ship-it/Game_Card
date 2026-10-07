@@ -2356,4 +2356,35 @@ UI จริง (Chrome headless): หน้า `/items` แสดง 36 ชิ�
 | Rate limit เป็น in-memory (CODE_REVIEW #1) | ➖ คงไว้โดยเจตนา (single-instance) — ต้องทำก่อนถ้าขยายหลายอินสแตนซ์ |
 | `STARTING_COIN = 10` (CODE_REVIEW #4) | ➖ ผู้ใช้กำหนดเองใน Phase 37 (กันเงินเฟ้อ) |
 
+---
+
+## Phase 45.2 — คอลเลคชั่นการ์ดกลับมา (2026-10-07)
+
+**คำสั่งผู้ใช้:** *"เอาเมนู คอลเลคชั่นการ์ด กลับมา และทำให้สมบูรณ์กว่าเดิม"*
+
+| เรื่อง | ก่อน (Phase 42) | หลัง |
+|---|---|---|
+| หน้า `/cards` | เป็น redirect ไป `/decks` | **หน้าคอลเลคชั่นจริง** — "สมุดสะสมทั้งเกม" |
+| มองเห็นอะไร | เฉพาะการ์ดที่ตัวเองมี (ในหน้าจัดเด็ค) | **การ์ดทุกใบในเกม** ⇒ เห็นว่ายังขาดใบไหน (ใบที่ยังไม่ค้นพบ = เงา 🔒) |
+| ความคืบหน้า | ไม่มี | แถบ % + สะสมแล้ว X/Y ใบ · ของซ้ำ · ติดดาว + แยกตามระดับหายาก 6 ระดับ |
+| แท็บ | — | การ์ดทั้งหมด · ที่มีอยู่ · **ยังไม่มี** |
+| ตัวกรอง | บทบาท/ธาตุ/ระดับหายาก (ในหน้าจัดเด็ค) | เพิ่ม **ค้นหา + เรียง 8 แบบ** (พลังรวม/ATK/DEF/HP/SPD/ความหายาก/ได้มาล่าสุด/ชื่อ) |
+| จัดการในหน้า | — | กดการ์ด → รายละเอียด · ☆/★ ติดดาว · **เพิ่มลงทีม** (quick-add) |
+| เมนู | `/cards` หายจาก `navItems` ⇒ แถบล่างมือถือเหลือ 4 เมนู | เพิ่ม **📇 คอลเลคชั่น** กลับเป็นเมนูหลัก (5 เมนู) + เมนูจอใหญ่ |
+
+**ไฟล์:** `src/lib/collection.ts` (ตรรกะบริสุทธิ์ — กรอง/เรียง/สรุป) · `src/app/api/collection/route.ts`
+(คืนการ์ดทั้งเกม + ผลรวมความคืบหน้า) · `src/app/(game)/cards/page.tsx` (หน้าใหม่) ·
+`src/components/layout/{BottomNavigation,TopHeader}.tsx` · i18n 27 คีย์ไทย/อังกฤษ ·
+`tests/unit/collection.test.ts` (21 เคส) · `scripts/verify-collection.mjs` · `scripts/shoot-collection.mjs`
+
+**หลักฐานวัดได้ (production จริง):**
+`npm run verify:collection` → **14/14** (notล็อกอิน 401 · summary ตรงกับ DB 228 ใบ · owned/missing ถูก ·
+กรองธาตุ/ระดับ/บทบาท/ค้นหาได้ · sort=power ลดหลั่นจริง · แบ่งหน้าถูก · ติดดาวสะท้อนผล · quick-add ได้)
+· `npm run test:e2e` (Playwright) → **12/12** (เพิ่มเทสต์หน้า /cards) · `npm run e2e:flow` → **30/30** ·
+`npx jest` **819 ผ่าน / 58 suites** · `tsc --noEmit` 0 error · `npm run audit` **68/73 + 5** ·
+build ✓ + restart · ภาพถ่ายจริง: `~/E2_Lab/reports/collection-{desktop,mobile,mobile-missing}.png`
+
+**บทเรียนที่เจอในรอบนี้:** รัน `npm run build | head -N` ทำให้ไปป์ปิดก่อน build เขียน `.next` เสร็จ
+⇒ เซิร์ฟเวอร์สตาร์ทไม่ขึ้น (`ENOENT: .next/prerender-manifest.json`) — **อย่าตัดท่อของ `next build`**
+
 
