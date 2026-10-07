@@ -2226,3 +2226,134 @@ UI จริง (Chrome headless): หน้า `/items` แสดง 36 ชิ�
 6) กระเป๋า: การ์ดย่อ 1 ใบ เปิดฟองได้ + ปุ่มปิดอยู่ในจอ + กดปิดได้จริง
 + `npm run inspect:mobile` ผ่าน **12/12 หน้า** (ไม่มีแถบเลื่อนนอนหลังเอาเมนูออก)
 
+---
+
+## Phase 43 — แยกร้านช่างเป็น 2 เมนู (Craft / Upgrade) · กระเป๋าแยก Item · ตีบวก "ทีละชิ้น" (2026-10-04)
+
+**คำสั่งผู้ใช้:** *"Workshop แยกเมนู Carft กับ Upgrade · ในกระเป๋าก็แยก Item · การตีบวก คือเอาของที่มี 1 ชิ้น ไปตีบวก ของชิ้นนั้นได้บวก ไม่ใช่ทั้งกอง"*
+
+| เรื่อง | ก่อน | หลัง |
+|---|---|---|
+| โครงสร้างของในคลัง | `user_items` 1 แถวต่อ (ผู้เล่น, Item) + `enhanceLevel` มีผลกับ **ทั้งกอง** | **1 แถวต่อ (ผู้เล่น, Item, ระดับบวก)** = กองแยกระดับ ⇒ ของ +0 กับ +2 คนละกอง |
+| การตีบวก | บังคับมี ≥2 ชิ้น · หัก "สำเนา 1 ชิ้น" เป็นวัตถุดิบ · ระดับใหม่ทับทั้งกอง | ดึง **1 ชิ้น** ออกจากกองที่เลือกระดับ แล้วย้ายไปกองระดับใหม่ (จำนวนรวมเท่าเดิม · ไม่กินสำเนาเพิ่ม) |
+| ช่องใส่ Item | ผูกแค่ "ชนิด" ของ Item (สถานะใช้ระดับของทั้งกอง) | ผูกกับ "ชิ้น" จริง (`card_item_slots.user_item_id`) ⇒ ใส่ +0 หรือ +9 ก็ได้คนละช่อง และสถานะคูณตามระดับของชิ้นนั้น |
+| หน้าร้านช่าง | หน้าเดียวรวม ซื้อ/คราฟต์/ตีบวก/ขาย | **2 แท็บ: 🧪 คราฟต์** (ซื้อ/คราฟต์ + ป้ายกองที่มี) และ **🛠 ตีบวก** (กองละแถว: ตีบวก/ขายคืน) |
+| กระเป๋า | Item ชนิดเดียว = 1 แถว | **แยกแถวตามกอง/ระดับ** (+0 ×3 กับ +2 ×1 คนละแถว) + ปุ่มขายผูกกับระดับของกองนั้น |
+| ช่างใส่ Item บนการ์ด | เลือกได้แค่ว่าชนิดไหน | เลือกได้ว่าชิ้น **ระดับไหน** (+N) — ของกองอื่นไม่ถูกใช้ |
+
+**สิ่งที่ทำ (ไฟล์):**
+| ไฟล์ | รายละเอียด |
+|---|---|
+| `prisma/schema.prisma` + `prisma/migrations/20261004100000_item_per_piece/` | `user_items` unique → `(user_id, item_id, enhance_level)` · `card_item_slots.user_item_id` (+ FK ON DELETE SET NULL) · **backfill** ช่องที่ใส่ของอยู่ → ชี้กองของเดิม |
+| `src/lib/item-enhance.ts` | `quote.pieces` (= 1 ชิ้น, แทน `copies`) + `ENHANCE_PIECES_PER_TRY` + `enhanceMove(from, success)` (บริสุทธิ์) |
+| `src/services/item.ts` | ของใหม่ลงกอง +0 (`grantItem`) · `stacks()` แยกกอง + `catalog()` แนบ `stacks[]` · `enhance(user, code, level)` ย้ายชิ้นระหว่างกอง · `sell(..., level)` · `equip(..., level)` ผูกชิ้น · สถานะ/ช่องใช้ระดับของชิ้นที่ใส่ |
+| API | `/api/items/enhance` (+`enhanceLevel`) · `/api/items/sell` (+`enhanceLevel`) · `/api/cards/[id]/equipment` (ตัวเลือกแยกกอง + ส่ง `enhanceLevel`) · `/api/inventory` (`workshopItems` = กองละแถว) · `/api/items` (`rows[].stacks`) |
+| UI | `app/(game)/items/page.tsx` (แท็บ Craft/Upgrade + โมดัลตีบวกระบุกอง) · `app/(game)/inventory/page.tsx` · `components/cards/CardItemWorkshop.tsx` |
+| ของที่ได้จากระบบอื่น | `services/level.ts` · `services/dungeon.ts` → upsert กอง +0 (ของใหม่ไม่มีบวก) |
+| i18n | `item.tabCraft` · `item.tabUpgrade` · `item.enhancePiece` · `item.stackLabel` · `item.upgradeHint` · `item.enhanceNoFree` · `item.enhanceMaxed` (ไทย/อังกฤษครบ) |
+| เทสต์/ตรวจ | `tests/unit/item-enhance.test.ts` (+6 เทสต์ "ตีบวกทีละชิ้น/ย้ายกอง") · `scripts/verify-phase43.mjs` (API+DB จริง) · `scripts/inspect-item-tabs.mjs` (Chrome จริง) |
+
+**หลักฐานวัดได้ (production จริง · jest 769 ผ่าน / 55 suites · `tsc --noEmit` 0 error · `next lint` ผ่าน · build ✓ + restart · `/api/health` 200):**
+
+`npm run verify:phase43` → **9/9** (ผู้เล่นทดสอบจริง + DB จริง):
+1) เตรียมของ 2 กอง (+0 ×3 · +2 ×1) · 2) `GET /api/items` ส่ง `stacks` แยกกอง ·
+3) **ตีบวกกองที่มีชิ้นเดียวได้** (+2 → +3 · กองเดิมเหลือ 0) · 4) ยอดรวมคงที่ **4 → 4** ·
+5) กอง +0 ลด 1 และเกิดกองใหม่ **+0: 3→2 · +1 ×1** (ของที่เหลือไม่ถูกบวกทั้งกอง) ·
+6) กระเป๋าแยกเป็น 3 แถว (+0×2 · +1×1 · +3×1) · 7) ใส่ชิ้น +1 ลงการ์ด → สถานะใช้ระดับของชิ้นนั้น ·
+8) ขายจากกอง +0 → กอง +1 ยังอยู่
+
+`npm run inspect:item-tabs` → **4/4** (Chrome จริง จอ 390×740):
+1) `/items` มี 2 เมนู 🧪 คราฟต์ + 🛠 ตีบวก (เริ่มที่คราฟต์ · แผงตีบวกยังไม่แสดง) ·
+2) กดแท็บตีบวก → กองแยกแถว `[+2, +0]` (การ์ดคราฟต์ซ่อน) ·
+3) โมดัลบอก **"ใช้ของ 1 ชิ้นจากกองนี้ตีบวก (ชิ้นนั้นได้บวก · ชิ้นอื่นในกองไม่เปลี่ยน)"** + ปุ่ม "🛠 ตีบวก (+0→+1)" ·
+4) กระเป๋าแยกแถว `[+2, +0]` + ปุ่มขายระบุระดับของกอง
+
+**หมายเหตุ:** ของที่ผู้เล่นมีอยู่ก่อน Phase 43 (1 กองต่อ Item) ยังอยู่ครบ — migration backfill ให้ และกองเดิมถูกมองเป็นของที่ระดับนั้นทั้งกอง (ตีบวกต่อจากนี้ไปจะแยกทีละชิ้น)
+
+---
+
+## Phase 44 — แท็บ Craft = คราฟต์ล้วน (ตัด "+N" และปุ่ม upgrade ออก) (2026-10-05)
+
+**คำสั่งผู้ใช้:** *"แล้วทำไมหินลับคม ในหน้า Craft มันยัง +1 · แล้วปุ่ม upgrade ไม่ต้องมีในหน้านี้"*
+
+| เรื่อง | ก่อน | หลัง |
+|---|---|---|
+| ป้ายระดับบวกบนการ์ดในแท็บ 🧪 คราฟต์ | โชว์ `+N` (กองสูงสุดที่มี เช่น `+1`) | **ไม่มีป้าย `+N`** — โชว์แค่ชื่อ + `มี ×N` / `ใส่อยู่ ×N` |
+| สถานะที่โชว์ | ค่ากองระดับสูงสุดที่ตีบวกแล้ว (เช่น `+7 ATK`) | **ค่าพื้นฐานของ Item** = ของใหม่ที่ได้จากการคราฟต์/ซื้อ (`หินลับคม +6 ATK`) |
+| ชิปกอง `+0 ×3 · +2 ×1` | มีในแท็บคราฟต์ | ย้ายไปอยู่แท็บ 🛠 ตีบวก อย่างเดียว |
+| ปุ่ม `🛠 ตีบวก / ขายคืน` (ลิงก์ไปแท็บตีบวก) | มีทุกการ์ดที่ `owned > 0` | **ตัดออก** — ใช้แท็บ 🛠 ตีบวก (มีตัวเลขจำนวนกอง) |
+
+**ไฟล์ที่แก้:** `src/app/(game)/items/page.tsx` (ตัด `bestStats` ออก · ใช้ `row.atk/def/hp/spd` + `data-item-base-stats` · ตัด `data-item-level` / `data-item-stack-chips` / `data-item-go-upgrade` ในแท็บคราฟต์)
+**เทสต์/ตรวจ:** `scripts/inspect-item-tabs.mjs` เพิ่ม 2 ข้อควบคุม — "แท็บคราฟต์ล้วน" (ป้าย +N = 0 · ชิปกอง = 0 · ปุ่มตีบวก = 0) และ "การ์ดหินลับคมโชว์ `+6 ATK` ไม่ใช่ `+1`"
+
+**หลักฐานวัดได้ (production จริง):** `npx jest` **769 ผ่าน / 55 suites** · `tsc --noEmit` 0 error · `next lint` ผ่าน · `npm run build` ✓ + `systemctl --user restart rune-dominion-arena` · `/api/health` **200** · `npm run inspect:item-tabs` → **6/6** (Chrome จริง 390×740) โดยการ์ดหินลับคมในแท็บคราฟต์อ่านได้ `"หินลับคม Whetstone Edge · ทั่วไป มี ×4 +6 ATK …"` (ไม่มี `+1`) และปุ่มตีบวกในแท็บคราฟต์ = 0 ปุ่ม
+
+---
+
+## Phase 45.1 — บันทึกย้อนหลัง: แผนที่เก็บของ (Map Farm) + เครื่องประดับอวตาร (2026-10-03 – 10-05)
+
+> **ทำไมต้องบันทึกย้อนหลัง:** งานชุดนี้ถูกพัฒนาไว้ใน working tree ตั้งแต่ 3–5 ต.ค. แต่ **ไม่ถูก commit
+> และไม่ถูกเขียนลงแผนเลย** — โค้ดรันจริงบนเครื่อง (ผู้เล่นเข้าใช้ได้) แต่ `git log` ยังหยุดที่ 3 ต.ค.
+> ⇒ ถ้าโคลนใหม่/เครื่องพัง จะไม่ได้งานส่วนนี้ ถือเป็นช่องว่างความสมบูรณ์ที่ใหญ่ที่สุดที่พบในรอบตรวจ 2026-10-07
+> (ปิดแล้ว: commit `48881b5` + `eb87c5b` และ migration ทั้ง 5 ตัวถูก commit ครบ)
+
+| เรื่อง | รายละเอียด | ไฟล์/หลักฐาน |
+|---|---|---|
+| แผนที่เก็บของ (Map Farm) | เดินบนแผนที่ เก็บวัตถุดิบ/ของตามโซน · ย้ายตำแหน่งอิสระ · คูลดาวน์ | `src/app/(game)/map/` · `src/app/api/map/` · `src/services/map-farm.ts` · `src/lib/map-zones.ts` (`map-zones` 10 เทสต์ + `map-art` 2 เทสต์) |
+| migration | `20261003120000_map_farm` + `20261003160000_map_free_move` | ตาราง `map_farm_logs` (มีข้อมูลจริง 10 แถว) |
+| ภาพแผนที่ | gen ด้วย AI เก็บใน `var/map-art` (13 MB) + `scripts/generate-map-images.ts` | `lib/map-art-store.ts` |
+| เครื่องประดับอวตาร + ฉายา | กรอบอวตาร (ring/glow) + ฉายาข้างชื่อในหัวเว็บ · หน้าสวมของประดับ | `lib/avatar.ts` (`avatarFrameTheme`) · `src/app/api/profile/equip` · `components/layout/TopHeader.tsx` · migration `20261003170000_avatar_cosmetics` |
+| ภาพไอเทม/การ์ดพิเศษ | ภาพจริงต่อไอเทม + การ์ดวิเศษจากอีเวนต์ | `lib/item-art*.ts` · `lib/special-art*.ts` · `var/item-art` (3.6 MB) · `var/special-art` (392 KB) |
+| API/UI เพิ่ม | `/api/items/[code]` · `/api/inventory/[code]` · หน้าอีเวนต์ + `EventHubView` | commit `eb87c5b` |
+| สถานะปัจจุบัน | ทุกอย่าง **commit + push แล้ว** และอยู่ใน build ที่รันจริง | `rune.e2sv.link/map` = 200 |
+
+**ผลข้างเคียงที่แก้ไปด้วย (`0e1ecab`):** `deploy/systemd/rune-dominion-arena.service` ยังผูก
+`PartOf=rune-dominion-tunnel.service` (quick tunnel ที่เลิกใช้แล้ว) ⇒ ถ้ามีใคร stop tunnel
+จะลาก service เกมดับตาม → `rune.e2sv.link` กลายเป็น 502 · ตัดออกแล้ว
+
+---
+
+## Phase 45 — ตรวจความสมบูรณ์ทั้งเกม + ปิดงานค้าง (2026-10-07)
+
+**คำสั่งผู้ใช้:** *"project Game Card ช่วยตรวจสอบ ความสมบูรณ์ของเกมหน่อย แล้วสรุปข้อมูลมา ยังไม่ต้องแก้อะไร"*
+→ ต่อด้วย *"แก้ไขทั้งหมดที่ยังไม่สมบูรณ์"*
+
+### §1 สิ่งที่ตรวจแล้ว "สมบูรณ์อยู่แล้ว" (มีหลักฐานจริง)
+
+| ด้าน | ผลตรวจ |
+|---|---|
+| เทสต์/build | Jest **798 passed / 57 suites** · `tsc --noEmit` 0 error · `next build` ✓ |
+| แผน vs โค้ด (`npm run audit`) | **67/72 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** = ครอบคลุม 72/72 (ไม่มีข้อตกค้าง) |
+| E2E | `npm run e2e:flow` (HTTP) **30/30** · `npm run test:e2e` (Playwright ในเบราว์เซอร์จริง) **11/11** |
+| ระบบจริง | `/api/health` 200 (DB ok) · systemd: postgres + arena (3000) + images.timer + backup.timer active |
+| สาธารณะ | <https://rune.e2sv.link> — `/` `/map` `/items` `/decks` `/arena` = 200 · `/admin/*` = 307 (ต้องล็อกอิน) |
+| เนื้อหาในเกม | การ์ด **209 ใบ มีภาพครบ READY 209/209** · ไอเทม 36 · เควสต์ 8 · ดันเจี้ยน 5 แห่ง · i18n ไทย/อังกฤษ 301=301 คีย์ครบ |
+| ลิงก์ในโค้ด | ไม่มีลิงก์เสีย (เทียบ `href` กับ route จริง 32 หน้า) |
+
+### §2 ช่องว่างที่พบและปิดแล้วในรอบนี้
+
+| # | ปัญหา | สิ่งที่ทำ | หลักฐาน |
+|---|---|---|---|
+| 1 | งาน 3–5 ต.ค. (Phase 43/44 + Map Farm + อวตาร) ไม่ถูก commit — migration 5 ตัว untracked | commit + push 4 ชุดแรก (item/map/avatar/ops) | `git push 00d8469..0e1ecab` · CI **green** |
+| 2 | `tests/e2e/` ว่าง + `test:e2e` ชี้ playwright ที่ไม่ได้ติดตั้ง | ติดตั้ง `@playwright/test` + config + เทสต์ 11 ข้อ + `global-teardown` | **11 passed / 0 failed** |
+| 3 | Admin มีแต่ `/api/admin/events/sync` ไม่มีหน้า UI | เพิ่มหน้า `/admin/events` + API CRUD + `verify-admin-events` | **15/15** |
+| 4 | ตัวกรองการ์ด (ธาตุ/ระดับหายาก) หายไปตอนรวมหน้า /cards เข้า /decks | เติมกลับ + "ซ่อนใบที่อยู่ในทีมแล้ว" + ตัวนับ | `npm run audit` ข้อ P2 ✅ · `tsc` 0 |
+| 5 | ไม่มี real-time ในอารีน่า (CODE_REVIEW #5) | ดึงสถานะห้องอัตโนมัติทุก 20 วิ | โค้ด `ARENA_POLL_MS` |
+| 6 | combat เต็ม 30 รอบอาจ DRAW (CODE_REVIEW #6) | `decideWinner()` ไล่ชั้น 4 ชั้น + เทสต์ | **7/7** เทสต์ใหม่ |
+| 7 | `/api/auth/me` ไม่ส่ง `cardCount` → onboarding เด้งหาทุกคน | ส่ง `cardCount` จริง | เจอตอนเขียน E2E |
+| 8 | สำรอง DB ครั้งสุดท้าย 21 ก.ย. + ไม่มี timer | `rune-dominion-backup.timer` ทุกวัน 04:30 (KEEP_DAYS=14) | สำรองได้ **348K · 39 ตาราง** · `verify-backup` restore ✓ (73 ผู้ใช้) |
+| 9 | บัญชีทดสอบค้างใน DB จริง 59 บัญชี (โผล่ในตารางจัดอันดับ อันดับ 4/5) | แก้ต้นเหตุ: `global-teardown` + `scripts/clean-test-users.mjs` (dry-run) | ⏳ ลบของเดิม **รอผู้ใช้อนุมัติ** (คำสั่งลบถูกบล็อกเพราะไม่มีการยืนยัน) |
+| 10 | `audit-plan.mjs` 2 ข้อล้าสมัย (อ่านข้อความ literal / หน้าที่ย้ายไปแล้ว) | แก้ให้ตรวจของจริง (i18n key + redirect) | audit จาก 65/72 → **67/72** |
+| 11 | เอกสาร ops ยังบอก quick tunnel + `url.txt` | README ของ repo แม่ + `docs/DEPLOYMENT.md` อัปเดตเป็น named tunnel `rune.e2sv.link` | ไฟล์อัปเดตแล้ว |
+
+### §3 ยังค้าง (ต้องตัดสินใจ/ทำต่อ)
+
+| เรื่อง | สถานะ |
+|---|---|
+| repo แม่ `Game_Card` ยังไม่มี remote | ⏳ **ต้องให้ผู้ใช้สร้าง repo ปลายทาง** (`gh` CLI บนเครื่องค้างเพราะ token อยู่ใน keyring ที่ terminal ของ service เข้าถึงไม่ได้) |
+| ลบบัญชีทดสอบ 59 บัญชีใน DB จริง | ⏳ รออนุมัติ — `npm run clean:test-users -- --yes` (มีไฟล์สำรองก่อนลบได้ด้วย `npm run backup`) |
+| `docs/manual/` (คู่มือหนังสือ) ยังไม่อัปเดตตามฟีเจอร์ 33–45 | ⏸ ตามกฎ: **ห้ามทำเอง** ต้องให้ผู้ใช้สั่ง (เปลือง token มาก) — ถ้าต้องการ บอกได้ |
+| Rate limit เป็น in-memory (CODE_REVIEW #1) | ➖ คงไว้โดยเจตนา (single-instance) — ต้องทำก่อนถ้าขยายหลายอินสแตนซ์ |
+| `STARTING_COIN = 10` (CODE_REVIEW #4) | ➖ ผู้ใช้กำหนดเองใน Phase 37 (กันเงินเฟ้อ) |
+
+

@@ -4,17 +4,20 @@ repo นี้เป็น "โฟลเดอร์แม่" ของโค�
 ส่วน **โค้ดเกมทั้งหมดอยู่ใน submodule** [`rune-dominion-arena`](rune-dominion-arena)
 (คนละ repo: <https://github.com/woravik-ship-it/rune-dominion-arena>)
 
-## สถานะปัจจุบัน (2026-09-21)
+## สถานะปัจจุบัน (2026-10-07)
 
 | หัวข้อ | สถานะ |
 |---|---|
-| แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) · Phase 13 (ปรับตามคำสั่งผู้ใช้ 6 ข้อ) เสร็จแล้ว |
-| เทสต์ | ✅ Jest 260 passed / 21 suites · `tsc --noEmit` ผ่าน |
-| Production build | ✅ ผ่าน (26 หน้า · shared JS 87.3 kB) |
-| E2E critical flow | ✅ 31/31 ผ่าน (localhost **และ** ผ่าน tunnel สาธารณะ) |
-| รันจริงบนเครื่องนี้ | ✅ `systemd --user` 3 unit: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-tunnel` |
-| Public URL | `~/.rune-dominion-tunnel/url.txt` (Cloudflare quick tunnel — เปลี่ยนทุกครั้งที่รีสตาร์ท) |
-| โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` push แล้ว · ⚠️ repo แม่นี้ยังไม่มี remote |
+| แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) |
+| งานต่อเนื่อง Phase 13–45 | ✅ ทำแล้วและ **commit ครบ** (Phase 43–45 สรุปท้ายแผน: ไอเทมแยกชิ้น/ตีบวก · แผนที่เก็บของ · เครื่องประดับอวตาร) |
+| ตรวจแผน vs โค้ด (`npm run audit`) | ✅ **67/72 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** (72/72 ครบ) |
+| เทสต์ | ✅ Jest **798 passed / 57 suites** · `tsc --noEmit` 0 error |
+| Production build | ✅ ผ่าน + รันจริง (`rune-dominion-arena.service`) |
+| E2E critical flow (HTTP) | ✅ 30/30 ผ่าน · E2E เบราว์เซอร์ (Playwright) ดู `tests/e2e/` |
+| รันจริงบนเครื่องนี้ | ✅ `systemd --user`: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-images.timer` · `rune-dominion-backup.timer` (สำรอง DB รายวัน 04:30) |
+| Public URL | ✅ **<https://rune.e2sv.link>** (Cloudflare named tunnel `e2sv` — คงที่ ไม่เปลี่ยนทุกครั้งที่รีสตาร์ท) |
+| สำรองฐานข้อมูล | ✅ `~/backups/rune-dominion/` · ตรวจกู้คืนได้จริงด้วย `npm run backup:verify` |
+| โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` (โค้ดเกม) · ⚠️ **repo แม่นี้ยังไม่มี remote** — ต้องสร้าง repo ปลายทางก่อนแล้ว `git remote add origin …` |
 
 ## โคลนโปรเจกต์
 
