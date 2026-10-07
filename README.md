@@ -9,15 +9,16 @@ repo นี้เป็น "โฟลเดอร์แม่" ของโค�
 | หัวข้อ | สถานะ |
 |---|---|
 | แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) |
-| งานต่อเนื่อง Phase 13–45 | ✅ ทำแล้วและ **commit ครบ** (Phase 43–45 สรุปท้ายแผน: ไอเทมแยกชิ้น/ตีบวก · แผนที่เก็บของ · เครื่องประดับอวตาร) |
-| ตรวจแผน vs โค้ด (`npm run audit`) | ✅ **67/72 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** (72/72 ครบ) |
-| เทสต์ | ✅ Jest **798 passed / 57 suites** · `tsc --noEmit` 0 error |
+| งานต่อเนื่อง Phase 13–45 | ✅ ทำแล้วและ **commit ครบ** (Phase 43–45 สรุปท้ายแผน: ไอเทมแยกชิ้น/ตีบวก · แผนที่เก็บของ · เครื่องประดับอวตาร · 45.4 ความยากดันไล่ทุกชั้น + Map ยึดโซนที่อยู่) |
+| ตรวจแผน vs โค้ด (`npm run audit`) | ✅ **68/73 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** (73/73 ครบ) |
+| เทสต์ | ✅ Jest **863 passed / 60 suites** · `tsc --noEmit` 0 error |
+| ตรวจด้วยเบราว์เซอร์จริง (สคริปต์ของโปรเจกต์) | ✅ `verify:map-zone` 10/10 · `verify:dungeon-curve` 8/8 · `verify:collection` 14/14 · `test:e2e` 12/12 |
 | Production build | ✅ ผ่าน + รันจริง (`rune-dominion-arena.service`) |
 | E2E critical flow (HTTP) | ✅ 30/30 ผ่าน · E2E เบราว์เซอร์ (Playwright) ดู `tests/e2e/` |
 | รันจริงบนเครื่องนี้ | ✅ `systemd --user`: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-images.timer` · `rune-dominion-backup.timer` (สำรอง DB รายวัน 04:30) |
 | Public URL | ✅ **<https://rune.e2sv.link>** (Cloudflare named tunnel `e2sv` — คงที่ ไม่เปลี่ยนทุกครั้งที่รีสตาร์ท) |
 | สำรองฐานข้อมูล | ✅ `~/backups/rune-dominion/` · ตรวจกู้คืนได้จริงด้วย `npm run backup:verify` |
-| โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` (โค้ดเกม) · ⚠️ **repo แม่นี้ยังไม่มี remote** — ต้องสร้าง repo ปลายทางก่อนแล้ว `git remote add origin …` |
+| โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` (โค้ดเกม) + repo แม่ `Game_Card` (เอกสาร) — ทั้งคู่ push แล้ว |
 
 ## โคลนโปรเจกต์
 
