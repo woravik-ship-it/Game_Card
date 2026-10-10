@@ -13,11 +13,11 @@ repo นี้เป็น "โฟลเดอร์แม่" ของโค�
 | ตรวจแผน vs โค้ด (`npm run audit`) | ✅ **68/73 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** (73/73 ครบ) |
 | เทสต์ | ✅ Jest **872 passed / 60 suites** · `tsc --noEmit` 0 error |
 | ฐานข้อมูลจริง | ✅ **7 บัญชี** (woravik · TCM · Abcd · KJ_SAM · player1 · secadmin · t5678) · ไม่มีบัญชีทดสอบค้าง |
-| ตรวจด้วยเบราว์เซอร์จริง (สคริปต์ของโปรเจกต์) | ✅ `verify:guide` 16/16 · `verify:map-zone` 10/10 · `verify:dungeon-curve` 8/8 · `verify:collection` 14/14 · `test:e2e` 13/13 |
+| ตรวจด้วยเบราว์เซอร์จริง (สคริปต์ของโปรเจกต์) | ✅ `verify:guide` 23/23 · `verify:map-zone` 10/10 · `verify:dungeon-curve` 8/8 · `verify:collection` 14/14 · `test:e2e` 13/13 |
 | Production build | ✅ ผ่าน + รันจริง (`rune-dominion-arena.service`) |
 | E2E critical flow (HTTP) | ✅ 30/30 ผ่าน · E2E เบราว์เซอร์ (Playwright) ดู `tests/e2e/` |
 | รันจริงบนเครื่องนี้ | ✅ `systemd --user`: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-images.timer` · `rune-dominion-backup.timer` (สำรอง DB รายวัน 04:30) |
-| Public URL | ✅ **<https://rune.e2sv.link>** (Cloudflare named tunnel `e2sv` — คงที่ ไม่เปลี่ยนทุกครั้งที่รีสตาร์ท) |
+| Public URL | ✅ **<https://rune.e2sv.link>** (Cloudflare named tunnel `e2sv` — คงที่ ไม่เปลี่ยนทุกครั้งที่รีสตาร์ท) · คู่มือฉบับเต็มอ่านในเกม: <https://rune.e2sv.link/manual> |
 | สำรองฐานข้อมูล | ✅ `~/backups/rune-dominion/` · ตรวจกู้คืนได้จริงด้วย `npm run backup:verify` |
 | โค้ดขึ้น GitHub | ✅ `rune-dominion-arena` (โค้ดเกม) + repo แม่ `Game_Card` (เอกสาร) — ทั้งคู่ push แล้ว |
 

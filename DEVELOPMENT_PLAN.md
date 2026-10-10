@@ -2665,3 +2665,32 @@ build ✓ + restart · ภาพถ่ายจริง: `~/E2_Lab/reports/coll
 **ภาพตัวอย่างที่ถ่ายส่งผู้ใช้:** `~/E2_Lab/reports/Game_Card_Guide_Mobile.png` · `Game_Card_Guide_Desktop.png`
 
 **หมายเหตุ:** คู่มือ PDF ฉบับเต็ม (117 หน้า) ยังไม่พูดถึงเมนู 📖 ใหม่ในตารางเมนูบทที่ 1/ภาคผนวก — รอผู้ใช้สั่งอัปเดต (ไฟล์ HTML + PDF พิมพ์ใหม่)
+
+---
+
+## Phase 45.7.1 — แก้ลิงก์ "คู่มือฉบับเต็ม" ที่เปิดแล้วเห็นเป็นโค้ด GitHub (2026-10-08)
+
+**ผู้ใช้แจ้ง:** *"ทำไมคู่มือฉบับเต็ม ผมเปิดแล้วขึ้นเป็น Code ที่หน้า GitHub"*
+
+**สาเหตุ:** ลิงก์ในหน้าคู่มือชี้ไป `github.com/woravik-ship-it/rune-dominion-arena/blob/master/docs/manual/index.html`
+ซึ่ง GitHub **แสดงไฟล์ .html เป็นโค้ด** (ไม่เรนเดอร์) — เป็นพฤติกรรมปกติของ GitHub ไม่ใช่บั๊กของคู่มือ
+
+**แก้:** เสิร์ฟคู่มือจากในเกมเองที่ **`/manual`** (`src/app/manual/[[...path]]/route.ts`)
+- อ่านไฟล์จริงจาก `docs/manual/` (ไม่คัดลอกไป `public/` เพราะคู่มือ+ภาพหนัก ~33 MB ⇒ จะซ้ำซ้อนใน git)
+- อนุญาตเฉพาะนามสกุลที่ใช้จริง (html/css/png/jpg/webp/gif/svg/pdf/woff*) + กัน path traversal (นอกโฟลเดอร์ = 404)
+- ใช้ได้ทั้ง `/manual` (index) · `/manual/images/...` (รูปในเล่ม) · `/manual/RuneDominion-Manual-TH.pdf` (เล่มเต็ม 17 MB)
+- หน้าคู่มือผู้เล่นใหม่: ลิงก์ "เปิดคู่มือฉบับเต็ม" → `/manual` และเพิ่มปุ่ม **"ดาวน์โหลด PDF เล่มเต็ม (17 MB)"**
+
+**หลักฐาน (วัดจริง · `npm run verify:guide` 23/23):**
+| ตรวจ | ผล |
+|---|---|
+| `/manual` | HTTP 200 · `text/html; charset=utf-8` · 110,230 ตัวอักษร · มี `<style>` + คำว่า Rune Dominion |
+| ไม่ใช่หน้าโค้ด GitHub | ไม่มี `raw.githubusercontent` / `github.com/woravik-ship-it` ใน HTML |
+| รูปในเล่ม | `/manual/images/fig-home.png` → 200 · `image/png` |
+| PDF เล่มเต็ม | `/manual/RuneDominion-Manual-TH.pdf` → 200 · `application/pdf` |
+| กันไฟล์นอกโฟลเดอร์ | `/manual/../package.json` → 404 |
+| สาธารณะ | `https://rune.e2sv.link/manual` = 200 · `.../manual/RuneDominion-Manual-TH.pdf` = 200 |
+| ลิงก์ในหน้า /guide | `/manual` (ไม่ใช่ github) · มีลิงก์ PDF |
+| เทสต์/บิลด์ | jest 872/60 suites · tsc 0 error · build(`env -u NODE_ENV`) + restart + health 200 |
+
+**ภาพหลักฐาน:** `~/E2_Lab/reports/Game_Card_Manual_Web.png` (หน้า /manual เรนเดอร์เป็นคู่มือจริง)
