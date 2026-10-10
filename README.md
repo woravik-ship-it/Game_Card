@@ -9,11 +9,11 @@ repo นี้เป็น "โฟลเดอร์แม่" ของโค�
 | หัวข้อ | สถานะ |
 |---|---|
 | แผนพัฒนา Phase 0–12 | ✅ ครบทุกข้อ (209/209 · ดู [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md)) |
-| งานต่อเนื่อง Phase 13–45 | ✅ ทำแล้วและ **commit ครบ** (Phase 43–45 สรุปท้ายแผน: ไอเทมแยกชิ้น/ตีบวก · แผนที่เก็บของ · เครื่องประดับอวตาร · 45.4 ความยากดันไล่ทุกชั้น + Map ยึดโซนที่อยู่ · 45.5 น้ำหนักบอสที่วัดใหม่ + e2e ลบบัญชีทดสอบเอง · 45.6 กลไกบอสคู่พยุงกัน + คู่มือผู้เล่น 117 หน้า) |
+| งานต่อเนื่อง Phase 13–45 | ✅ ทำแล้วและ **commit ครบ** (Phase 43–45 สรุปท้ายแผน: ไอเทมแยกชิ้น/ตีบวก · แผนที่เก็บของ · เครื่องประดับอวตาร · 45.4 ความยากดันไล่ทุกชั้น + Map ยึดโซนที่อยู่ · 45.5 น้ำหนักบอสที่วัดใหม่ + e2e ลบบัญชีทดสอบเอง · 45.6 กลไกบอสคู่พยุงกัน + คู่มือผู้เล่น 117 หน้า · 45.7 คู่มือผู้เล่นใหม่ในเกม `/guide`) |
 | ตรวจแผน vs โค้ด (`npm run audit`) | ✅ **68/73 มีหลักฐานจริง + 5 ข้อเลือกใช้ทางอื่นโดยเจตนา** (73/73 ครบ) |
-| เทสต์ | ✅ Jest **867 passed / 60 suites** · `tsc --noEmit` 0 error |
+| เทสต์ | ✅ Jest **872 passed / 60 suites** · `tsc --noEmit` 0 error |
 | ฐานข้อมูลจริง | ✅ **7 บัญชี** (woravik · TCM · Abcd · KJ_SAM · player1 · secadmin · t5678) · ไม่มีบัญชีทดสอบค้าง |
-| ตรวจด้วยเบราว์เซอร์จริง (สคริปต์ของโปรเจกต์) | ✅ `verify:map-zone` 10/10 · `verify:dungeon-curve` 8/8 · `verify:collection` 14/14 · `test:e2e` 12/12 |
+| ตรวจด้วยเบราว์เซอร์จริง (สคริปต์ของโปรเจกต์) | ✅ `verify:guide` 16/16 · `verify:map-zone` 10/10 · `verify:dungeon-curve` 8/8 · `verify:collection` 14/14 · `test:e2e` 13/13 |
 | Production build | ✅ ผ่าน + รันจริง (`rune-dominion-arena.service`) |
 | E2E critical flow (HTTP) | ✅ 30/30 ผ่าน · E2E เบราว์เซอร์ (Playwright) ดู `tests/e2e/` |
 | รันจริงบนเครื่องนี้ | ✅ `systemd --user`: `rune-dominion-postgres` · `rune-dominion-arena` (พอร์ต 3000) · `rune-dominion-images.timer` · `rune-dominion-backup.timer` (สำรอง DB รายวัน 04:30) |
